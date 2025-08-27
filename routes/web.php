@@ -13,7 +13,7 @@ Route::get('/products/{product}', [ProductController::class, 'show'])->name('pro
 Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 
-// TODO: Thêm Route cho Đăng nhập & Đăng ký ở đây
+// Thêm Route cho Đăng nhập & Đăng ký ở đây
 
 // ===== AUTHENTICATED ROUTES =====
 // Route cho người dùng đã đăng nhập (sẽ bổ sung sau, ví dụ: trang profile)

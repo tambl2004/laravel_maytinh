@@ -4,8 +4,13 @@
 
 @section('content')
     <h1>Quản lý Sản phẩm</h1>
+    @if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
     <div class="d-flex justify-content-end mb-3">
-        <a href="#" class="btn btn-success">Thêm Sản phẩm mới</a>
+    <a href="{{ route('admin.products.create') }}" class="btn btn-success">Thêm Sản phẩm mới</a>
     </div>
     <table class="table table-bordered">
         <thead>
@@ -25,8 +30,12 @@
                 <td>{{ number_format($product->price) }} VNĐ</td>
                 <td>{{ $product->stock }}</td>
                 <td>
-                    <a href="#" class="btn btn-primary btn-sm">Sửa</a>
-                    <a href="#" class="btn btn-danger btn-sm">Xóa</a>
+                    <a href="{{ route('admin.products.edit', $product) }}" class="btn btn-primary btn-sm">Sửa</a>
+                    <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                    </form>
                 </td>
             </tr>
             @endforeach

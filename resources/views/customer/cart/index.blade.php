@@ -1,19 +1,9 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giỏ hàng của bạn</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{{ route('products.index') }}">Tablet Shop</a>
-        </div>
-    </nav>
+@extends('layouts.customer')
 
-    <div class="container my-5">
+@section('title', 'Trang chủ - Tablet Shop')
+
+@section('content')
+<div class="container my-5">
         <h1>Giỏ hàng của bạn</h1>
 
         @if(!empty($cart))
@@ -60,7 +50,4 @@
             </div>
         @endif
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+@endsection

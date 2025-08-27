@@ -3,65 +3,69 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product; // <--- DÒNG QUAN TRỌNG BẠN ĐÃ NÓI
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        // Lấy tất cả sản phẩm, sắp xếp theo ID mới nhất lên đầu
-        $products = \App\Models\Product::latest()->paginate(10); // Phân trang, mỗi trang 10 sản phẩm
+        $products = Product::latest()->paginate(10);
         return view('admin.products.index', compact('products'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('admin.products.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'image' => 'nullable|url',
+        ]);
+
+        Product::create($validated);
+
+        return redirect()->route('admin.products.index')
+                         ->with('success', 'Sản phẩm đã được tạo thành công!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // --- HÀM MỚI ---
+    // Hiển thị form để sửa sản phẩm
+    public function edit(Product $product)
     {
-        //
+        return view('admin.products.edit', compact('product'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    // --- HÀM MỚI ---
+    // Cập nhật sản phẩm trong database
+    public function update(Request $request, Product $product)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'image' => 'nullable|url',
+        ]);
+
+        $product->update($validated);
+
+        return redirect()->route('admin.products.index')
+                         ->with('success', 'Sản phẩm đã được cập nhật thành công!');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    // --- HÀM MỚI ---
+    // Xóa sản phẩm khỏi database
+    public function destroy(Product $product)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $product->delete();
+        return redirect()->route('admin.products.index')
+                         ->with('success', 'Sản phẩm đã được xóa thành công!');
     }
 }

@@ -9,7 +9,6 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Tạm thời chỉ trả về một view đơn giản
         return view('admin.dashboard');
     }
 }

@@ -7,4 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
+     // Thêm dòng này
+     protected $fillable = ['name', 'description', 'price', 'stock', 'image'];
 }

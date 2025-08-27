@@ -41,6 +41,6 @@ class CartController extends Controller
     $cart = session()->get('cart', []);
 
     // Trả về view và truyền dữ liệu giỏ hàng qua
-    return view('cart.index', ['cart' => $cart]);
+    return view('customer.cart.index', ['cart' => $cart]);
 }
 }
