@@ -13,12 +13,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(10)->create();
-
+        User::factory(1)->create(); // Tạo 1 user thường
+    
+        // Bỏ user 'test@example.com' cũ đi và thay bằng admin
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Admin User',
+            'email' => 'admin@gmail.com',
+            'role' => 'admin', // Gán quyền admin
         ]);
+    
         $this->call([
             ProductSeeder::class,
         ]);
