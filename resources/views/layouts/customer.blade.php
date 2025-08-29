@@ -16,6 +16,12 @@
             <div class="container">
                 <a class="navbar-brand" href="{{ route('products.index') }}">Tablet Shop</a>
                 <ul class="navbar-nav ms-auto d-flex flex-row">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('home') }}">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('products.index') }}">Sản phẩm</a>
+                    </li>
                     <li class="nav-item me-3">
                         <a class="nav-link" href="{{ route('contact.index') }}">Liên hệ</a>
                     </li>

@@ -38,6 +38,11 @@
                     Quản lý Đơn hàng
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                    Quản lý Người dùng
+                </a>
+            </li>
             {{-- Thêm các link quản lý khác ở đây sau này --}}
         </ul>
         <hr class="text-white">

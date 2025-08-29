@@ -20,8 +20,10 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\UserController as AdminUserController; 
 
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\HomeController;
 /*
 |--------------------------------------------------------------------------
 | KHU VỰC ROUTE CHO KHÁCH (GUEST & CUSTOMER)
@@ -30,7 +32,12 @@ use App\Http\Controllers\AddressController;
 | Các route này dành cho tất cả người dùng, bao gồm cả khách vãng lai.
 |
 */
-Route::get('/', [ProductController::class, 'index'])->name('products.index');
+// Trang chủ mới với sản phẩm nổi bật
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Trang hiển thị TẤT CẢ sản phẩm (trang chủ cũ)
+Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
@@ -107,4 +114,5 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('products', AdminProductController::class);
     Route::resource('categories', AdminCategoryController::class);
     Route::resource('orders', AdminOrderController::class)->only(['index', 'show', 'update']);
+    Route::resource('users', AdminUserController::class);
 });
