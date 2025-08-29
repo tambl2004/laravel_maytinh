@@ -33,6 +33,11 @@
                     Quản lý Sản phẩm
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ route('admin.orders.index') }}" class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                    Quản lý Đơn hàng
+                </a>
+            </li>
             {{-- Thêm các link quản lý khác ở đây sau này --}}
         </ul>
         <hr class="text-white">
