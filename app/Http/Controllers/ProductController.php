@@ -19,8 +19,15 @@ class ProductController extends Controller
      // THÊM PHƯƠNG THỨC MỚI NÀY VÀO
      public function show(Product $product)
      {
-         // Laravel sẽ tự động tìm Product có ID tương ứng với {product} trên URL
-         // Đây được gọi là "Route Model Binding"
-         return view('customer.products.show', ['product' => $product]);
+         // Lấy 4 sản phẩm liên quan (cùng danh mục, trừ sản phẩm hiện tại)
+         $relatedProducts = Product::where('category_id', $product->category_id)
+                                   ->where('id', '!=', $product->id)
+                                   ->limit(4)
+                                   ->get();
+     
+         return view('customer.products.show', [
+             'product' => $product,
+             'relatedProducts' => $relatedProducts
+         ]);
      }
 }

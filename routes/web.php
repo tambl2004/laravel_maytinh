@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Admin\CategoryController; 
+use App\Http\Controllers\CheckoutController; // Thêm ở trên cùng
 // ===== GUEST ROUTES =====
 // Trang chủ, chi tiết sản phẩm và giỏ hàng cho khách
 Route::get('/', [ProductController::class, 'index'])->name('products.index');
@@ -29,6 +30,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('products', AdminProductController::class);
     Route::resource('categories', CategoryController::class); // This defines admin.categories.* routes
 });
+
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
 // Thêm Route cho Đăng ký & Đăng nhập ở đây
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);

@@ -41,7 +41,7 @@
 
             <div class="d-flex justify-content-between mt-4">
                 <a href="{{ route('products.index') }}" class="btn btn-secondary">Tiếp tục mua sắm</a>
-                <a href="#" class="btn btn-primary">Tiến hành thanh toán</a>
+                <a href="{{ route('checkout.index') }}" class="btn btn-primary">Tiến hành thanh toán</a>
             </div>
 
         @else

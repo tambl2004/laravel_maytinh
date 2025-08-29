@@ -5,18 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Tablet Shop')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    {{-- Link tới file CSS tùy chỉnh của chúng ta --}}
+    <link rel="stylesheet" href="{{ asset('css/customer-style.css') }}">
     @yield('styles')
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{{ route('products.index') }}">Tablet Shop</a>
-            <ul class="navbar-nav ms-auto d-flex flex-row">
-                <li class="nav-item me-3">
-                    <a class="nav-link" href="{{ route('cart.index') }}">
-                        Giỏ hàng <span class="badge bg-danger">{{ count((array) session('cart')) }}</span>
-                    </a>
-                </li>
+    <div class="d-flex flex-column min-vh-100">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+            <div class="container">
+                <a class="navbar-brand" href="{{ route('products.index') }}">Tablet Shop</a>
+                <ul class="navbar-nav ms-auto d-flex flex-row">
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="{{ route('cart.index') }}">
+                            Giỏ hàng <span class="badge bg-danger">{{ count((array) session('cart')) }}</span>
+                        </a>
+                    </li>
                 @guest
                     <li class="nav-item me-2">
                         <a class="nav-link" href="{{ route('login') }}">Đăng nhập</a>
@@ -44,9 +47,20 @@
         </div>
     </nav>
 
-    <main>
-        @yield('content')
-    </main>
+    <main class="flex-grow-1">
+            @yield('content')
+        </main>
+
+        <footer class="mt-auto py-4">
+            <div class="container text-center">
+                <p>&copy; 2025 Tablet Shop. All Rights Reserved.</p>
+                <p>
+                    <a href="#" class="text-white">Chính sách Bảo mật</a> |
+                    <a href="#" class="text-white">Điều khoản Dịch vụ</a>
+                </p>
+            </div>
+        </footer>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
