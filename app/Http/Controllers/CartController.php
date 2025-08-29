@@ -7,20 +7,20 @@ use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    public function index()
+    {
+        $cart = session('cart', []);
+        return view('customer.cart.index', compact('cart'));
+    }
+
     public function add(Request $request, Product $product)
     {
-        // 1. Lấy giỏ hàng hiện tại từ session, nếu chưa có thì tạo mảng rỗng
         $cart = session()->get('cart', []);
-
-        // 2. Lấy số lượng từ form, mặc định là 1
         $quantity = $request->input('quantity', 1);
 
-        // 3. Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
-        if (isset($cart[$product->id])) {
-            // Nếu đã có, cộng dồn số lượng
+        if(isset($cart[$product->id])) {
             $cart[$product->id]['quantity'] += $quantity;
         } else {
-            // Nếu chưa có, thêm mới vào giỏ hàng với các thông tin cần thiết
             $cart[$product->id] = [
                 "name" => $product->name,
                 "quantity" => $quantity,
@@ -28,19 +28,33 @@ class CartController extends Controller
                 "image" => $product->image
             ];
         }
-
-        // 4. Lưu giỏ hàng mới vào lại session
         session()->put('cart', $cart);
-
-        // 5. Quay lại trang trước đó với một thông báo thành công
         return redirect()->back()->with('success', 'Đã thêm sản phẩm vào giỏ hàng!');
     }
-    public function index()
-{
-    // Lấy dữ liệu giỏ hàng từ session
-    $cart = session()->get('cart', []);
 
-    // Trả về view và truyền dữ liệu giỏ hàng qua
-    return view('customer.cart.index', ['cart' => $cart]);
-}
+    // --- HÀM MỚI: Cập nhật số lượng ---
+    public function update(Request $request, Product $product)
+    {
+        $cart = session()->get('cart');
+        $quantity = $request->input('quantity');
+
+        if(isset($cart[$product->id]) && $quantity > 0) {
+            $cart[$product->id]['quantity'] = $quantity;
+            session()->put('cart', $cart);
+            return redirect()->route('cart.index')->with('success', 'Giỏ hàng đã được cập nhật!');
+        }
+        return redirect()->route('cart.index')->with('error', 'Cập nhật giỏ hàng thất bại!');
+    }
+
+    // --- HÀM MỚI: Xóa sản phẩm ---
+    public function remove(Product $product)
+    {
+        $cart = session()->get('cart');
+        if(isset($cart[$product->id])) {
+            unset($cart[$product->id]);
+            session()->put('cart', $cart);
+            return redirect()->route('cart.index')->with('success', 'Đã xóa sản phẩm khỏi giỏ hàng!');
+        }
+        return redirect()->route('cart.index')->with('error', 'Xóa sản phẩm thất bại!');
+    }
 }

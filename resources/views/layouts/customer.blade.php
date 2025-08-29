@@ -17,6 +17,9 @@
                 <a class="navbar-brand" href="{{ route('products.index') }}">Tablet Shop</a>
                 <ul class="navbar-nav ms-auto d-flex flex-row">
                     <li class="nav-item me-3">
+                        <a class="nav-link" href="{{ route('contact.index') }}">Liên hệ</a>
+                    </li>
+                    <li class="nav-item me-3">
                         <a class="nav-link" href="{{ route('cart.index') }}">
                             Giỏ hàng <span class="badge bg-danger">{{ count((array) session('cart')) }}</span>
                         </a>
@@ -56,7 +59,11 @@
         {{-- Footer mới --}}
         <footer class="footer mt-auto py-3">
             <div class="container text-center">
-                <span class="text-muted">© 2025 Tablet Shop - Xây dựng với Laravel bởi Đối tác lập trình.</span>
+                <p class="text-muted mb-0">© 2025 Tablet Shop - Xây dựng với Laravel bởi Đối tác lập trình.</p>
+                <p>
+                    <a href="#" class="text-white text-decoration-none">Chính sách Bảo mật</a> |
+                    <a href="#" class="text-white text-decoration-none">Điều khoản Dịch vụ</a>
+                </p>
             </div>
         </footer>
     </div>
