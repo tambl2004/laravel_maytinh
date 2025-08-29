@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Address; // Thêm model Address
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,21 +17,30 @@ class CheckoutController extends Controller
         if (empty($cart)) {
             return redirect()->route('products.index')->with('error', 'Giỏ hàng của bạn đang trống!');
         }
-        return view('customer.checkout.index', compact('cart'));
+
+        $addresses = Auth::user()->addresses()->latest()->get();
+
+        // Quan trọng: Nếu user chưa có địa chỉ, chuyển hướng họ đến trang quản lý địa chỉ
+        if ($addresses->isEmpty()) {
+            return redirect()->route('addresses.index')->with('info', 'Vui lòng thêm địa chỉ nhận hàng trước khi thanh toán.');
+        }
+
+        return view('customer.checkout.index', compact('cart', 'addresses'));
     }
 
     public function store(Request $request)
     {
+        // Validate rằng người dùng đã chọn một địa chỉ
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
-            'address' => 'required|string|max:500',
+            'address_id' => 'required|exists:addresses,id',
         ]);
 
         $cart = session()->get('cart', []);
-        if (empty($cart)) {
-            return redirect()->route('products.index');
+        $address = Address::find($request->address_id);
+
+        // Đảm bảo địa chỉ được chọn thuộc về user đang đăng nhập
+        if ($address->user_id !== Auth::id()) {
+            abort(403, 'Hành động không được phép.');
         }
 
         $total = 0;
@@ -40,12 +50,13 @@ class CheckoutController extends Controller
 
         DB::beginTransaction();
         try {
+            // Tạo đơn hàng với thông tin từ địa chỉ đã chọn
             $order = Order::create([
                 'user_id' => Auth::id(),
-                'customer_name' => $request->name,
-                'customer_email' => $request->email,
-                'customer_phone' => $request->phone,
-                'customer_address' => $request->address,
+                'customer_name' => $address->name,
+                'customer_email' => Auth::user()->email, // Lấy email từ user đang đăng nhập
+                'customer_phone' => $address->phone,
+                'customer_address' => $address->address,
                 'total_amount' => $total,
             ]);
 
@@ -60,13 +71,13 @@ class CheckoutController extends Controller
             }
 
             DB::commit();
-            session()->forget('cart'); // Xóa giỏ hàng
+            session()->forget('cart');
 
             return redirect()->route('checkout.success', $order);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Đã có lỗi xảy ra, vui lòng thử lại.')->withInput();
+            return back()->with('error', 'Đã có lỗi xảy ra, vui lòng thử lại.');
         }
     }
 

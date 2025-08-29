@@ -34,6 +34,7 @@
                                 {{ Auth::user()->name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="{{ route('addresses.index') }}">Địa chỉ của tôi</a></li>
                                 <li><a class="dropdown-item" href="{{ route('orders.my') }}">Đơn hàng của tôi</a></li>
                                 @if(Auth::user()->role === 'admin')
                                     <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Trang Admin</a></li>

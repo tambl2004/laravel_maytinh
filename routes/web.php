@@ -21,7 +21,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 
-
+use App\Http\Controllers\AddressController;
 /*
 |--------------------------------------------------------------------------
 | KHU VỰC ROUTE CHO KHÁCH (GUEST & CUSTOMER)
@@ -34,7 +34,9 @@ Route::get('/', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
-
+Route::get('/my-addresses', [AddressController::class, 'index'])->name('addresses.index');
+Route::post('/my-addresses', [AddressController::class, 'store'])->name('addresses.store');
+Route::delete('/my-addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
 
 /*
 |--------------------------------------------------------------------------
