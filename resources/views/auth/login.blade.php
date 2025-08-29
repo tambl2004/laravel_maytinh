@@ -30,6 +30,9 @@
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
                         <button type="submit" class="btn btn-primary">Đăng nhập</button>
+                        <div class="text-center mt-3">
+                            <p>Chưa có tài khoản? <a href="{{ route('register') }}">Đăng ký ngay</a></p>
+                        </div>
                     </form>
                 </div>
             </div>

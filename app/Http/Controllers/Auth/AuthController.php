@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
+
 class AuthController extends Controller
 {
     // ----- ĐĂNG KÝ -----
@@ -29,11 +30,17 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'user',
         ]);
 
+        // Tự động gửi email xác thực ngay sau khi tạo user
+        $user->sendEmailVerificationNotification();
+
+        // Đăng nhập cho user
         Auth::login($user);
 
-        return redirect()->route('products.index');
+        // Chuyển hướng đến trang thông báo cần xác thực
+        return redirect()->route('verification.notice');
     }
 
     // ----- ĐĂNG NHẬP -----
@@ -42,29 +49,41 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+   // Sửa trong hàm login()
+   public function login(Request $request)
+   {
+       $credentials = $request->validate([
+           'email' => 'required|email',
+           'password' => 'required',
+       ]);
 
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+       // Thử đăng nhập
+       if (Auth::attempt($credentials)) {
+           $user = Auth::user();
 
-            // Kiểm tra role và chuyển hướng
-            if (Auth::user()->role === 'admin') {
-                return redirect()->intended(route('admin.dashboard'));
-            }
+           // Nếu user không phải admin và chưa xác thực email
+           if ($user->role !== 'admin' && !$user->hasVerifiedEmail()) {
+               Auth::logout(); // Đăng xuất họ ra
 
-            return redirect()->intended(route('products.index'));
-        }
+               // Quay lại trang đăng nhập và hiển thị thông báo lỗi
+               return back()->withErrors([
+                   'email' => 'Vui lòng xác thực email của bạn trước khi đăng nhập.',
+               ])->onlyInput('email');
+           }
 
-        // Nếu đăng nhập thất bại
-        return back()->withErrors([
-            'email' => 'Thông tin đăng nhập không chính xác.',
-        ])->onlyInput('email');
-    }
+           // Nếu đăng nhập thành công và đã xác thực (hoặc là admin)
+           $request->session()->regenerate();
+           if ($user->role === 'admin') {
+               return redirect()->intended(route('admin.dashboard'));
+           }
+           return redirect()->intended(route('products.index'));
+       }
+
+       // Nếu sai email hoặc mật khẩu
+       return back()->withErrors([
+           'email' => 'Thông tin đăng nhập không chính xác.',
+       ])->onlyInput('email');
+   }
 
     // ----- ĐĂNG XUẤT -----
     public function logout(Request $request): RedirectResponse
