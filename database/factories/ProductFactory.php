@@ -9,17 +9,17 @@ class ProductFactory extends Factory
 {
     public function definition(): array
     {
-        // --- Dữ liệu nguồn để tạo sản phẩm thực tế ---
-        $brands = ['Apple', 'Samsung', 'Xiaomi', 'Lenovo', 'Microsoft'];
+        // --- Dữ liệu nguồn để tạo sản phẩm balo ---
+        $brands = ['Nike', 'Adidas', 'The North Face', 'JanSport', 'Herschel'];
         $models = [
-            'Apple' => ['iPad Pro 12.9 inch', 'iPad Air 5', 'iPad Mini 6', 'iPad 10.9 inch'],
-            'Samsung' => ['Galaxy Tab S9 Ultra', 'Galaxy Tab S9 FE', 'Galaxy Tab A9+'],
-            'Xiaomi' => ['Pad 6 Pro', 'Pad 6', 'Redmi Pad SE'],
-            'Lenovo' => ['Tab P12', 'Legion Tab', 'Xiaoxin Pad Pro'],
-            'Microsoft' => ['Surface Pro 9', 'Surface Go 3'],
+            'Nike' => ['Brasilia Backpack', 'Heritage Backpack', 'Academy Backpack', 'Elemental Backpack'],
+            'Adidas' => ['Classic 3-Stripes', 'Originals Backpack', 'Power Backpack', 'Linear Core'],
+            'The North Face' => ['Borealis Backpack', 'Jester Backpack', 'Recon Backpack', 'Vault Backpack'],
+            'JanSport' => ['SuperBreak', 'Right Pack', 'High Stakes', 'Cool Student'],
+            'Herschel' => ['Little America', 'Novel Duffle', 'Settlement Backpack', 'Pop Quiz'],
         ];
-        $specs = ['(128GB, Wifi)', '(256GB, Wifi + 5G)', '(512GB, Wifi)', '(64GB, Wifi)'];
-        $colors = ['Xám Không Gian', 'Bạc', 'Vàng Hồng', 'Xanh Dương', 'Đen'];
+        $specs = ['(25L)', '(30L)', '(20L)', '(35L)'];
+        $colors = ['Đen', 'Xanh Navy', 'Xám', 'Nâu', 'Xanh Dương'];
 
         // --- Logic tạo sản phẩm ---
         $brand = Arr::random($brands);
@@ -27,32 +27,46 @@ class ProductFactory extends Factory
         $spec = Arr::random($specs);
         $color = Arr::random($colors);
 
-        $productName = "{$model} {$spec} - {$color}";
+        $productName = "Balo {$brand} {$model} {$spec} - {$color}";
         
         $priceRanges = [
-            'iPad Pro' => [25000000, 40000000],
-            'iPad Air' => [15000000, 22000000],
-            'iPad Mini' => [12000000, 18000000],
-            'Galaxy Tab S' => [20000000, 35000000],
-            'Surface Pro' => [22000000, 45000000],
-            'default' => [5000000, 15000000]
+            'The North Face' => [1500000, 3500000],
+            'Herschel' => [1200000, 2800000],
+            'Nike' => [800000, 2000000],
+            'Adidas' => [700000, 1800000],
+            'JanSport' => [500000, 1500000],
+            'default' => [400000, 1200000]
         ];
 
-        $priceKey = 'default';
-        if (str_contains($model, 'iPad Pro')) $priceKey = 'iPad Pro';
-        elseif (str_contains($model, 'iPad Air')) $priceKey = 'iPad Air';
-        elseif (str_contains($model, 'iPad Mini')) $priceKey = 'iPad Mini';
-        elseif (str_contains($model, 'Galaxy Tab S')) $priceKey = 'Galaxy Tab S';
-        elseif (str_contains($model, 'Surface Pro')) $priceKey = 'Surface Pro';
+        $priceKey = $brand;
+        if (!array_key_exists($brand, $priceRanges)) {
+            $priceKey = 'default';
+        }
 
         $price = fake()->numberBetween($priceRanges[$priceKey][0], $priceRanges[$priceKey][1]);
+
+        // Generate backpack images using Unsplash
+        $imageKeywords = ['backpack', 'rucksack', 'schoolbag', 'hiking+backpack', 'travel+backpack'];
+        $randomKeyword = Arr::random($imageKeywords);
+        $imageUrl = "https://images.unsplash.com/photo-" . fake()->numberBetween(1500000000000, 1700000000000) . "?w=400&h=400&fit=crop&crop=center&q=80";
+        
+        // Alternative: Use a more reliable backpack image URL
+        $backpackImages = [
+            'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1622260614153-03223fb72052?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1581115293892-c5b2c71ccb7d?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1570804881642-0ed475d2da2b?w=400&h=400&fit=crop&crop=center'
+        ];
+        $imageUrl = Arr::random($backpackImages);
 
 
         return [
             'name' => $productName,
-            'description' => "Trải nghiệm sức mạnh đỉnh cao với {$productName}. Thiết kế sang trọng, màn hình sắc nét và hiệu năng vượt trội cho mọi tác vụ từ làm việc chuyên nghiệp đến giải trí đỉnh cao. Sản phẩm chính hãng, bảo hành 12 tháng.",
+            'description' => "Khám phá phong cách và tiện ích với {$productName}. Thiết kế hiện đại, chất liệu cao cấp và khả năng chứa đồ tối ưu cho mọi hoạt động từ học tập, làm việc đến du lịch. Sản phẩm chính hãng, bảo hành 12 tháng.",
             'price' => $price,
             'stock' => fake()->numberBetween(10, 100),
+            'image' => $imageUrl,
         ];
     }
 }

@@ -12,7 +12,7 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        // Sử dụng ProductFactory để tạo ra 15 sản phẩm mẫu
+        // Sử dụng ProductFactory để tạo ra 15 sản phẩm balo mẫu
         \App\Models\Product::factory()->count(15)->create();
     }
 }

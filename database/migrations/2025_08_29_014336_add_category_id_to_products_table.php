@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('category_id')->nullable()->constrained()->onDelete('set null');
         });
     }
-
+    
     /**
      * Reverse the migrations.
      */
