@@ -98,6 +98,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // My Orders
     Route::get('/my-orders', [OrderController::class, 'index'])->name('orders.my');
     Route::get('/my-orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
 });
 
 

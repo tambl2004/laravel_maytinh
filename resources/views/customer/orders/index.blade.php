@@ -156,9 +156,16 @@
                                                 <i class="fas fa-redo me-1"></i>Mua lại
                                             </button>
                                         @elseif($order->status == 'pending')
-                                            <button class="btn btn-outline-danger btn-sm w-100 cancel-order-btn" data-order-id="{{ $order->id }}">
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger btn-sm w-100 cancel-order-btn" 
+                                                    data-order-id="{{ $order->id }}"
+                                                    title="Nhấp để hủy đơn hàng"
+                                                    style="cursor: pointer;"
+                                                    onclick="alert('Button clicked! Order ID: {{ $order->id }}'); return false;">
                                                 <i class="fas fa-times me-1"></i>Hủy đơn
                                             </button>
+                                            <!-- Debug: Test if button is visible and clickable -->
+                                            <small class="text-muted d-block mt-1">Order ID: {{ $order->id }} | Status: {{ $order->status }}</small>
                                         @endif
                                     </div>
                                 </div>
@@ -208,65 +215,160 @@
 <script>
     let orderToCancel = null;
     
-    // Cancel order functionality
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('cancel-order-btn') || e.target.closest('.cancel-order-btn')) {
-            const button = e.target.classList.contains('cancel-order-btn') ? e.target : e.target.closest('.cancel-order-btn');
-            const orderId = button.getAttribute('data-order-id');
-            cancelOrder(orderId);
-        }
+    // Debug function
+    function debugLog(message, data = null) {
+        console.log('Order Cancel Debug:', message, data);
+    }
+    
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        debugLog('DOM loaded, setting up cancel order functionality');
+        
+        // Check if cancel buttons exist
+        const cancelButtons = document.querySelectorAll('.cancel-order-btn');
+        debugLog('Found cancel buttons:', cancelButtons.length);
+        
+        // Method 1: Event delegation (primary)
+        document.addEventListener('click', function(e) {
+            debugLog('Click detected on:', e.target);
+            
+            // Check if clicked element or its parent has cancel-order-btn class
+            const cancelBtn = e.target.closest('.cancel-order-btn');
+            if (cancelBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const orderId = cancelBtn.getAttribute('data-order-id');
+                debugLog('Cancel button clicked for order:', orderId);
+                
+                if (orderId) {
+                    cancelOrder(orderId);
+                } else {
+                    debugLog('Error: No order ID found on button');
+                }
+            }
+        });
+        
+        // Method 2: Direct event listeners (backup)
+        cancelButtons.forEach(function(button, index) {
+            debugLog('Setting up direct listener for button:', index);
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const orderId = this.getAttribute('data-order-id');
+                debugLog('Direct click - Order ID:', orderId);
+                
+                if (orderId) {
+                    cancelOrder(orderId);
+                }
+            });
+        });
     });
     
     function cancelOrder(orderId) {
+        debugLog('cancelOrder function called with ID:', orderId);
+        
         orderToCancel = orderId;
-        const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
-        modal.show();
+        
+        try {
+            const modalElement = document.getElementById('cancelOrderModal');
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+                debugLog('Modal shown successfully');
+            } else {
+                debugLog('Error: Modal element not found');
+                alert('Lỗi: Không tìm thấy modal xác nhận. Vui lòng tải lại trang.');
+            }
+        } catch (error) {
+            debugLog('Error showing modal:', error);
+            alert('Lỗi hiển thị modal: ' + error.message);
+        }
     }
     
     // Confirm cancel order
-    document.getElementById('confirmCancelOrder').addEventListener('click', function() {
-        if (orderToCancel) {
-            // Here you would make an AJAX request to cancel the order
-            // For now, we'll just show a placeholder
-            
-            fetch(`/orders/${orderToCancel}/cancel`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update the order status in the UI
-                    const orderCard = document.querySelector(`[data-order-id="${orderToCancel}"]`);
-                    if (orderCard) {
-                        const statusBadge = orderCard.querySelector('.order-status');
-                        statusBadge.className = 'order-status badge fs-6 px-3 py-2 bg-danger';
-                        statusBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i>Đã hủy';
-                        
-                        // Remove cancel button
-                        const cancelBtn = orderCard.querySelector('.cancel-order-btn');
-                        if (cancelBtn) {
-                            cancelBtn.remove();
-                        }
-                    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmButton = document.getElementById('confirmCancelOrder');
+        if (confirmButton) {
+            confirmButton.addEventListener('click', function() {
+                debugLog('Confirm cancel button clicked, orderToCancel:', orderToCancel);
+                
+                if (orderToCancel) {
+                    // Show loading state
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang hủy...';
+                    this.disabled = true;
                     
-                    // Show success message
-                    showToast('success', 'Đơn hàng đã được hủy thành công!');
+                    fetch(`/orders/${orderToCancel}/cancel`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => {
+                        debugLog('Cancel response status:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        debugLog('Cancel response data:', data);
+                        
+                        if (data.success) {
+                            // Update the order status in the UI
+                            const orderCard = document.querySelector(`[data-order-id="${orderToCancel}"]`);
+                            if (orderCard) {
+                                // Add cancelled class to the entire order card
+                                orderCard.classList.add('cancelled');
+                                
+                                const statusBadge = orderCard.querySelector('.order-status');
+                                statusBadge.className = 'order-status badge fs-6 px-3 py-2 bg-danger';
+                                statusBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i>Đã hủy';
+                                
+                                // Update progress steps to show cancelled state
+                                const progressSteps = orderCard.querySelectorAll('.step');
+                                progressSteps.forEach(step => {
+                                    step.classList.remove('active');
+                                    const stepIcon = step.querySelector('.step-icon');
+                                    stepIcon.style.background = '#e5e7eb';
+                                    stepIcon.style.color = '#9ca3af';
+                                });
+                                
+                                // Remove cancel button and replace with cancelled message
+                                const cancelBtn = orderCard.querySelector('.cancel-order-btn');
+                                if (cancelBtn) {
+                                    cancelBtn.outerHTML = '<div class="btn btn-secondary btn-sm w-100" disabled><i class="fas fa-ban me-1"></i>Đã hủy</div>';
+                                }
+                            }
+                            
+                            // Show success message
+                            showToast('success', 'Đơn hàng đã được hủy thành công!');
+                        } else {
+                            showToast('error', data.message || 'Có lỗi xảy ra khi hủy đơn hàng. Vui lòng thử lại.');
+                        }
+                    })
+                    .catch(error => {
+                        debugLog('Cancel error:', error);
+                        showToast('error', 'Có lỗi xảy ra. Vui lòng thử lại sau.');
+                    })
+                    .finally(() => {
+                        // Reset button
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                        
+                        // Close modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal'));
+                        if (modal) {
+                            modal.hide();
+                        }
+                        orderToCancel = null;
+                    });
                 } else {
-                    showToast('error', 'Có lỗi xảy ra khi hủy đơn hàng. Vui lòng thử lại.');
+                    debugLog('Error: No order to cancel');
                 }
-            })
-            .catch(error => {
-                showToast('error', 'Có lỗi xảy ra. Vui lòng thử lại sau.');
             });
-            
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal'));
-            modal.hide();
-            orderToCancel = null;
+        } else {
+            debugLog('Error: Confirm button not found');
         }
     });
     

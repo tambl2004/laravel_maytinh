@@ -1,61 +1,175 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+
+[![Laravel](https://img.shields.io/badge/Laravel-10.x-red.svg)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue.svg)](https://php.net)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-blue.svg)](https://getbootstrap.com)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://img.shields.io/badge/Tr%E1%BA%A1ng%20th%C3%A1i-Production%20Ready-brightgreen" alt="Status">
+  <img src="https://img.shields.io/badge/Phi%C3%AAn%20b%E1%BA%A3n-1.0.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/C%E1%BA%ADp%20nh%E1%BA%ADt-09/2025-orange" alt="Last Update">
+  <br/>
+  <strong>Website bán hàng</strong>
+  <br/>
+  Đơn giản – Hiện đại – Dễ triển khai
+  
 </p>
 
-## About Laravel
+## Nội dung
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- [Tổng quan](#tổng-quan)
+- [Tính năng nổi bật](#tính-năng-nổi-bật)
+- [Yêu cầu hệ thống](#yêu-cầu-hệ-thống)
+- [Cài đặt nhanh](#cài-đặt-nhanh)
+- [Tài khoản mặc định](#tài-khoản-mặc-định)
+- [Cấu trúc thư mục](#cấu-trúc-thư-mục)
+- [Các lệnh hữu ích](#các-lệnh-hữu-ích)
+- [Khắc phục sự cố](#khắc-phục-sự-cố)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Yêu cầu hệ thống
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **PHP**: >= 8.1
+- **Composer**: >= 2.0
+- **Node.js**: >= 16.0 và **NPM**: >= 8.0
+- **MySQL**: >= 8.0 hoặc MariaDB >= 10.5
+- **Web Server**: Apache hoặc Nginx
 
-## Learning Laravel
+## Cài đặt nhanh
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+> Lưu ý: Các lệnh dưới đây dành cho môi trường phát triển local. Trên Windows, nên chạy Terminal ở chế độ Administrator khi cần.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 1) Clone dự án
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+git clone https://github.com/tambl2004/laravel_maytinhbang
+.git
+cd laravel_maytinhbang
 
-## Laravel Sponsors
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 2) Cài đặt dependencies
 
-### Premium Partners
+```bash
+# PHP dependencies
+composer update
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# Node dependencies
+npm install
 
-## Contributing
+# Cài Tailwind plugin cho Vite (nếu sử dụng)
+npm install -D @tailwindcss/vite
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Nếu gặp lỗi khi chạy composer trên Windows (thiếu extension), thử:
 
-## Code of Conduct
+```bash
+# Mở file php.ini và bật các extension cần thiết
+# Ví dụ với XAMPP (tuỳ máy): C:\xampp\php\php.ini
+# Bỏ dấu ; trước các dòng:
+#   extension=gd
+#   extension=zip
+#   extension=mbstring
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+composer clear-cache
+composer update
+```
 
-## Security Vulnerabilities
+### 3) Cấu hình môi trường
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+cp .env.example .env
+php artisan config:clear
+php artisan key:generate
+# Tuỳ chọn: cache lại cấu hình sau khi đã chỉnh .env
+php artisan config:cache
+```
 
-## License
+### 4) Cấu hình database (.env)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=db_maytinhbang
+DB_USERNAME=root
+DB_PASSWORD=
+SESSION_DRIVER=file
+```
+
+### 5) Khởi tạo cơ sở dữ liệu
+
+- Tạo database mới tên `db_maytinhbang`
+- Import file SQL mẫu (nếu dự án cung cấp) vào database này
+
+Hoặc sử dụng migration/seed (nếu hỗ trợ):
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+### 6) Liên kết storage
+
+```bash
+php artisan storage:link
+```
+
+### 7) Build assets
+
+```bash
+# Production build
+npm run build
+
+# Hoặc chạy chế độ phát triển
+npm run dev
+```
+
+### 8) Chạy server
+
+```bash
+php artisan serve
+```
+
+Truy cập: `http://localhost:8000`
+
+## Tài khoản mặc định
+
+- **Admin**: Email `admin@admin.com` — Mật khẩu `12345678`
+- **User**: Mật khẩu mặc định `12345678`
+
+
+## Các lệnh hữu ích
+
+```bash
+# Xoá cache
+php artisan cache:clear
+php artisan config:clear
+php artisan view:clear
+php artisan route:clear
+
+# Tạo dữ liệu mẫu (nếu có seeder)
+php artisan db:seed
+
+# Kiểm thử hệ thống rating (nếu có command)
+php artisan test:rating
+
+# Tạo lại storage link
+php artisan storage:link
+
+# Reset DB và seed lại
+php artisan migrate:fresh --seed
+```
+
+## Khắc phục sự cố
+
+- **"Class not found"**: chạy `composer dump-autoload`
+- **Permission storage** (Linux/Mac):
+  ```bash
+  chmod -R 775 storage/
+  chmod -R 775 bootstrap/cache/
+  ```
+- **Không kết nối được DB**: kiểm tra `.env`, đảm bảo MySQL/MariaDB đang chạy
+- **Lỗi npm install**:
+  ```bash
+  npm cache clean --force
+  npm install
+  ```

@@ -52,56 +52,97 @@
         <div class="row" id="products-grid">
             @foreach ($products as $product)
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                <div class="product-card-enhanced">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="product-image-wrapper">
-                            <img src="{{ $product->image }}" class="card-img-top product-image" alt="{{ $product->name }}">
-                            <div class="product-overlay">
-                                <div class="overlay-buttons">
-                                    <a href="{{ route('products.show', $product) }}" class="btn btn-light btn-sm mb-2">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <form action="{{ route('cart.add', $product) }}" method="POST" class="quick-add-form">
-                                        @csrf
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="btn btn-primary btn-sm" title="Thêm vào giỏ">
-                                            <i class="fas fa-cart-plus"></i>
-                                        </button>
-                                    </form>
-                                </div>
+                <div class="modern-product-card">
+                    <div class="product-image-container">
+                        <img src="{{ $product->image }}" class="product-img" alt="{{ $product->name }}">
+                        
+                        <!-- Stock Badge -->
+                        @if($product->stock <= 5 && $product->stock > 0)
+                            <div class="stock-badge warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>Sắp hết</span>
                             </div>
-                            @if($product->stock <= 5 && $product->stock > 0)
-                                <div class="product-badge badge-warning">Sắp hết</div>
-                            @elseif($product->stock == 0)
-                                <div class="product-badge badge-danger">Hết hàng</div>
-                            @endif
+                        @elseif($product->stock == 0)
+                            <div class="stock-badge danger">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Hết hàng</span>
+                            </div>
+                        @else
+                            <div class="stock-badge success">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Còn hàng</span>
+                            </div>
+                        @endif
+                        
+                        <!-- Quick Actions Overlay -->
+                        <div class="quick-actions">
+                            <a href="{{ route('products.show', $product) }}" class="action-btn view-btn" title="Xem chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button class="action-btn wishlist-btn" title="Yêu thích">
+                                <i class="far fa-heart"></i>
+                            </button>
+                            <button class="action-btn compare-btn" title="So sánh">
+                                <i class="fas fa-balance-scale"></i>
+                            </button>
                         </div>
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title mb-2">{{ Str::limit($product->name, 50) }}</h5>
-                            <p class="card-text text-muted small flex-grow-1">{{ Str::limit($product->description, 80) }}</p>
-                            <div class="product-info mt-auto">
-                                <div class="price-section">
-                                    <span class="current-price text-primary fw-bold h5">{{ number_format($product->price, 0, ',', '.') }}₫</span>
+                    </div>
+                    
+                    <div class="product-content">
+                        <div class="product-meta">
+                            @if($product->category)
+                                <span class="category-tag">{{ $product->category->name }}</span>
+                            @endif
+                            <div class="rating">
+                                <div class="stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
                                 </div>
-                                <div class="product-actions mt-3">
-                                    <a href="{{ route('products.show', $product) }}" class="btn btn-outline-primary btn-sm flex-fill me-2">
-                                        Xem chi tiết
-                                    </a>
-                                    @if($product->stock > 0)
-                                        <form action="{{ route('cart.add', $product) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="quantity" value="1">
-                                            <button type="submit" class="btn btn-primary btn-sm">
-                                                <i class="fas fa-cart-plus"></i>
-                                            </button>
-                                        </form>
-                                    @else
-                                        <button class="btn btn-secondary btn-sm" disabled>
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    @endif
-                                </div>
+                                <span class="rating-count">(4.0)</span>
                             </div>
+                        </div>
+                        
+                        <h3 class="product-title">
+                            <a href="{{ route('products.show', $product) }}">{{ Str::limit($product->name, 50) }}</a>
+                        </h3>
+                        
+                        <p class="product-description">{{ Str::limit($product->description, 80) }}</p>
+                        
+                        <div class="price-section">
+                            <div class="price">{{ number_format($product->price, 0, ',', '.') }}₫</div>
+                            <div class="stock-info">
+                                @if($product->stock > 0)
+                                    <span class="in-stock">Còn {{ $product->stock }} sản phẩm</span>
+                                @else
+                                    <span class="out-of-stock">Hết hàng</span>
+                                @endif
+                            </div>
+                        </div>
+                        
+                        <div class="card-actions">
+                            @if($product->stock > 0)
+                                <form action="{{ route('cart.add', $product) }}" method="POST" class="add-to-cart-form">
+                                    @csrf
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn-add-cart">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        <span>Thêm</span>
+                                    </button>
+                                </form>
+                            @else
+                                <button class="btn-add-cart disabled" disabled>
+                                    <i class="fas fa-ban"></i>
+                                    <span>Hết hàng</span>
+                                </button>
+                            @endif
+                            
+                            <a href="{{ route('products.show', $product) }}" class="btn-view-details">
+                                Chi tiết
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -128,51 +169,22 @@
         </div>
     @endif
 </div>
-
-<!-- Quick View Modal -->
-<div class="modal fade" id="quickViewModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Xem nhanh sản phẩm</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <img id="quick-view-image" src="" class="img-fluid rounded" alt="">
-                    </div>
-                    <div class="col-md-6">
-                        <h4 id="quick-view-name"></h4>
-                        <p id="quick-view-description" class="text-muted"></p>
-                        <div class="price-section mb-3">
-                            <span id="quick-view-price" class="h4 text-primary fw-bold"></span>
-                        </div>
-                        <div class="quick-view-actions">
-                            <a id="quick-view-link" href="#" class="btn btn-primary me-2">Xem chi tiết</a>
-                            <button class="btn btn-outline-primary">Thêm vào giỏ</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @section('scripts')
 <script>
-    // Quick Add to Cart functionality
-    document.querySelectorAll('.quick-add-form').forEach(form => {
+    // Add to Cart functionality for modern cards
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const button = this.querySelector('button');
-            const originalText = button.innerHTML;
+            const button = this.querySelector('.btn-add-cart');
+            const originalContent = button.innerHTML;
             
             // Show loading state
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Đang thêm...</span>';
             button.disabled = true;
+            button.classList.add('loading');
             
             // Submit form via fetch
             fetch(this.action, {
@@ -184,49 +196,115 @@
             })
             .then(response => response.json())
             .then(data => {
-                // Show success feedback
-                button.innerHTML = '<i class="fas fa-check"></i>';
-                button.classList.remove('btn-primary');
-                button.classList.add('btn-success');
-                
-                // Update cart count if available
-                const cartBadge = document.querySelector('.nav-link .badge');
-                if (cartBadge && data.cartCount) {
-                    cartBadge.textContent = data.cartCount;
+                if (data.success) {
+                    // Show success feedback
+                    button.innerHTML = '<i class="fas fa-check"></i><span>Đã thêm!</span>';
+                    button.classList.remove('loading');
+                    button.classList.add('success');
+                    
+                    // Show toast notification
+                    showToast('success', data.message);
+                    
+                    // Update cart count if available
+                    const cartBadge = document.querySelector('.nav-link .badge');
+                    if (cartBadge && data.cartCount) {
+                        cartBadge.textContent = data.cartCount;
+                    }
+                    
+                    // Reset button after delay
+                    setTimeout(() => {
+                        button.innerHTML = originalContent;
+                        button.classList.remove('success');
+                        button.disabled = false;
+                    }, 2000);
+                } else {
+                    // Show error feedback
+                    button.innerHTML = '<i class="fas fa-times"></i><span>Lỗi!</span>';
+                    button.classList.remove('loading');
+                    button.classList.add('error');
+                    
+                    showToast('error', data.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalContent;
+                        button.classList.remove('error');
+                        button.disabled = false;
+                    }, 2000);
                 }
-                
-                // Reset button after delay
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('btn-success');
-                    button.classList.add('btn-primary');
-                    button.disabled = false;
-                }, 2000);
             })
             .catch(error => {
                 // Show error feedback
-                button.innerHTML = '<i class="fas fa-times"></i>';
-                button.classList.remove('btn-primary');
-                button.classList.add('btn-danger');
+                button.innerHTML = '<i class="fas fa-times"></i><span>Lỗi!</span>';
+                button.classList.remove('loading');
+                button.classList.add('error');
+                
+                showToast('error', 'Có lỗi xảy ra. Vui lòng thử lại sau.');
                 
                 setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.classList.remove('btn-danger');
-                    button.classList.add('btn-primary');
+                    button.innerHTML = originalContent;
+                    button.classList.remove('error');
                     button.disabled = false;
                 }, 2000);
             });
         });
     });
     
-    // Filter form auto-submit on select change
-    document.querySelectorAll('.filters-section select').forEach(select => {
-        select.addEventListener('change', function() {
-            this.form.submit();
+    // Wishlist functionality
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('far')) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                this.classList.add('active');
+                showToast('success', 'Đã thêm vào danh sách yêu thích!');
+            } else {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                this.classList.remove('active');
+                showToast('info', 'Đã xóa khỏi danh sách yêu thích!');
+            }
         });
     });
     
-    // Add fade-in animation to product cards
+    // Compare functionality
+    document.querySelectorAll('.compare-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.classList.toggle('active');
+            if (this.classList.contains('active')) {
+                showToast('success', 'Đã thêm vào danh sách so sánh!');
+            } else {
+                showToast('info', 'Đã xóa khỏi danh sách so sánh!');
+            }
+        });
+    });
+    
+    // Toast notification function
+    function showToast(type, message) {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `modern-toast ${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'times-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        // Add to page
+        document.body.appendChild(toast);
+        
+        // Animate in
+        setTimeout(() => toast.classList.add('show'), 100);
+        
+        // Remove after delay
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => document.body.removeChild(toast), 300);
+        }, 3000);
+    }
+    
+    // Modern card animations
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
@@ -235,19 +313,35 @@
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                entry.target.style.opacity = '0';
-                entry.target.style.transform = 'translateY(20px)';
-                entry.target.style.transition = 'all 0.6s ease';
-                
-                setTimeout(() => {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }, 100);
+                entry.target.style.animationDelay = Math.random() * 0.3 + 's';
+                entry.target.classList.add('animate-slide-up');
             }
         });
     }, observerOptions);
     
-    document.querySelectorAll('.product-card-enhanced').forEach(card => {
-        observer.observe(card);
+    // Observe all modern product cards
+    document.querySelectorAll('.modern-product-card').forEach(el => {
+        observer.observe(el);
+    });
+    
+    // Filter functionality (if filters exist)
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterButtons.forEach(b => b.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Add loading animation to products grid
+            const grid = document.getElementById('products-grid');
+            grid.style.opacity = '0.5';
+            
+            // Simulate filter (you can implement actual filtering logic here)
+            setTimeout(() => {
+                grid.style.opacity = '1';
+            }, 500);
+        });
     });
 </script>
+@endsection

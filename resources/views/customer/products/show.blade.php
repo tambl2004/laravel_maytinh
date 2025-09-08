@@ -138,30 +138,26 @@
                     <div class="add-to-cart-section">
                         <form action="{{ route('cart.add', $product) }}" method="POST" class="add-to-cart-form">
                             @csrf
-                            <div class="row g-3 align-items-end">
-                                <div class="col-md-4">
-                                    <label for="quantity" class="form-label fw-semibold">Số lượng</label>
-                                    <div class="quantity-selector">
-                                        <button type="button" class="btn btn-outline-secondary" id="decreaseQty">
-                                            <i class="fas fa-minus"></i>
-                                        </button>
-                                        <input type="number" name="quantity" id="quantity" class="form-control text-center" 
-                                               value="1" min="1" max="{{ $product->stock }}">
-                                        <button type="button" class="btn btn-outline-secondary" id="increaseQty">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
+                            <div class="mb-4">
+                                <label for="quantity" class="form-label fw-semibold mb-3">Số lượng</label>
+                                <div class="quantity-selector d-flex align-items-center justify-content-start mb-4">
+                                    <button type="button" class="btn btn-outline-secondary quantity-btn" id="decreaseQty">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" name="quantity" id="quantity" class="form-control quantity-input text-center mx-0" 
+                                           value="1" min="1" max="{{ $product->stock }}">
+                                    <button type="button" class="btn btn-outline-secondary quantity-btn" id="increaseQty">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
                                 </div>
-                                <div class="col-md-8">
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" class="btn btn-primary btn-lg flex-fill">
-                                            <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
-                                        </button>
-                                        <button type="button" class="btn btn-outline-danger btn-lg">
-                                            <i class="fas fa-heart"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                            </div>
+                            <div class="d-flex gap-3 align-items-center">
+                                <button type="submit" class="btn btn-primary btn-lg flex-fill">
+                                    <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-lg px-4">
+                                    <i class="fas fa-heart"></i>
+                                </button>
                             </div>
                         </form>
                         
@@ -241,49 +237,7 @@
         </div>
     </div>
 
-    <!-- Related Products -->
-    @if($relatedProducts->count() > 0)
-    <div class="related-products-section">
-        <div class="section-header mb-4">
-            <h3 class="display-6 fw-bold mb-2">Sản phẩm liên quan</h3>
-            <p class="text-muted">Các sản phẩm tương tự mà bạn có thể quan tâm</p>
-        </div>
-        <div class="row">
-            @foreach($relatedProducts as $related)
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="product-card-enhanced">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="product-image-wrapper">
-                            <img src="{{ $related->image }}" class="card-img-top product-image" alt="{{ $related->name }}">
-                            <div class="product-overlay">
-                                <div class="overlay-buttons">
-                                    <a href="{{ route('products.show', $related) }}" class="btn btn-light btn-sm mb-2">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <form action="{{ route('cart.add', $related) }}" method="POST">
-                                        @csrf
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-cart-plus"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h6 class="card-title mb-2">{{ Str::limit($related->name, 50) }}</h6>
-                            <p class="text-primary fw-bold mb-2">{{ number_format($related->price, 0, ',', '.') }}₫</p>
-                            <a href="{{ route('products.show', $related) }}" class="btn btn-outline-primary btn-sm w-100">
-                                Xem chi tiết
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
+
 </div>
 
 <!-- Image Zoom Modal -->
@@ -369,6 +323,42 @@
         });
     }
     
+    // Toast notification helper
+    function showToast(type, message) {
+        // Create toast if it doesn't exist
+        let toast = document.getElementById('success-toast');
+        if (!toast) {
+            const toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            
+            toastContainer.innerHTML = `
+                <div id="success-toast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <span id="toast-message">Sản phẩm đã được thêm vào giỏ hàng!</span>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(toastContainer);
+            toast = document.getElementById('success-toast');
+        }
+        
+        const toastMessage = document.getElementById('toast-message');
+        
+        // Update toast styling and message
+        toast.className = `toast align-items-center text-white border-0 ${type === 'success' ? 'bg-success' : 'bg-danger'}`;
+        toastMessage.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>${message}`;
+        
+        // Show toast
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+    }
+    
     // Tab content dynamic loading (placeholder)
     document.querySelectorAll('#productTabs button').forEach(tabBtn => {
         tabBtn.addEventListener('click', function() {
@@ -376,37 +366,6 @@
             // Here you could load content dynamically if needed
         });
     });
-    
-    // Smooth scroll for related products
-    const relatedProductsSection = document.querySelector('.related-products-section');
-    if (relatedProductsSection) {
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
-        };
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.querySelectorAll('.product-card-enhanced').forEach((card, index) => {
-                        setTimeout(() => {
-                            card.style.opacity = '1';
-                            card.style.transform = 'translateY(0)';
-                        }, index * 100);
-                    });
-                }
-            });
-        }, observerOptions);
-        
-        // Set initial state
-        relatedProductsSection.querySelectorAll('.product-card-enhanced').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = 'all 0.6s ease';
-        });
-        
-        observer.observe(relatedProductsSection);
-    }
     
     // Share functionality
     document.querySelectorAll('[data-action="share"]').forEach(shareBtn => {

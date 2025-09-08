@@ -15,8 +15,31 @@ class CartController extends Controller
 
     public function add(Request $request, Product $product)
     {
+        // Check if product is in stock
+        if ($product->stock <= 0) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sản phẩm đã hết hàng!'
+                ]);
+            }
+            return redirect()->back()->with('error', 'Sản phẩm đã hết hàng!');
+        }
+
         $cart = session()->get('cart', []);
         $quantity = $request->input('quantity', 1);
+
+        // Check if adding this quantity would exceed stock
+        $currentQuantity = isset($cart[$product->id]) ? $cart[$product->id]['quantity'] : 0;
+        if (($currentQuantity + $quantity) > $product->stock) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Số lượng vượt quá tồn kho!'
+                ]);
+            }
+            return redirect()->back()->with('error', 'Số lượng vượt quá tồn kho!');
+        }
 
         if(isset($cart[$product->id])) {
             $cart[$product->id]['quantity'] += $quantity;
@@ -29,6 +52,22 @@ class CartController extends Controller
             ];
         }
         session()->put('cart', $cart);
+        
+        // Calculate cart count
+        $cartCount = array_sum(array_column($cart, 'quantity'));
+        
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã thêm sản phẩm vào giỏ hàng!',
+                'cartCount' => $cartCount,
+                'product' => [
+                    'name' => $product->name,
+                    'price' => number_format($product->price, 0, ',', '.') . '₫'
+                ]
+            ]);
+        }
+        
         return redirect()->back()->with('success', 'Đã thêm sản phẩm vào giỏ hàng!');
     }
 
