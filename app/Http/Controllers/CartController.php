@@ -17,7 +17,7 @@ class CartController extends Controller
     {
         // Check if product is in stock
         if ($product->stock <= 0) {
-            if ($request->wantsJson()) {
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Sản phẩm đã hết hàng!'
@@ -32,7 +32,7 @@ class CartController extends Controller
         // Check if adding this quantity would exceed stock
         $currentQuantity = isset($cart[$product->id]) ? $cart[$product->id]['quantity'] : 0;
         if (($currentQuantity + $quantity) > $product->stock) {
-            if ($request->wantsJson()) {
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Số lượng vượt quá tồn kho!'
@@ -56,7 +56,7 @@ class CartController extends Controller
         // Calculate cart count
         $cartCount = array_sum(array_column($cart, 'quantity'));
         
-        if ($request->wantsJson()) {
+        if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Đã thêm sản phẩm vào giỏ hàng!',
@@ -75,24 +75,47 @@ class CartController extends Controller
     public function update(Request $request, Product $product)
     {
         $cart = session()->get('cart');
-        $quantity = $request->input('quantity');
+        $quantity = (int) $request->input('quantity');
 
         if(isset($cart[$product->id]) && $quantity > 0) {
+            // Không cho vượt quá tồn kho
+            if ($quantity > $product->stock) {
+                if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Số lượng vượt quá tồn kho!']);
+                }
+                return redirect()->route('cart.index')->with('error', 'Số lượng vượt quá tồn kho!');
+            }
+
             $cart[$product->id]['quantity'] = $quantity;
             session()->put('cart', $cart);
+
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'Giỏ hàng đã được cập nhật!']);
+            }
             return redirect()->route('cart.index')->with('success', 'Giỏ hàng đã được cập nhật!');
+        }
+
+        if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => 'Cập nhật giỏ hàng thất bại!']);
         }
         return redirect()->route('cart.index')->with('error', 'Cập nhật giỏ hàng thất bại!');
     }
 
     // --- HÀM MỚI: Xóa sản phẩm ---
-    public function remove(Product $product)
+    public function remove(Request $request, Product $product)
     {
         $cart = session()->get('cart');
         if(isset($cart[$product->id])) {
             unset($cart[$product->id]);
             session()->put('cart', $cart);
+
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'Đã xóa sản phẩm khỏi giỏ hàng!']);
+            }
             return redirect()->route('cart.index')->with('success', 'Đã xóa sản phẩm khỏi giỏ hàng!');
+        }
+        if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+            return response()->json(['success' => false, 'message' => 'Xóa sản phẩm thất bại!']);
         }
         return redirect()->route('cart.index')->with('error', 'Xóa sản phẩm thất bại!');
     }

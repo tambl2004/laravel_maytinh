@@ -29,7 +29,7 @@
             <td>{{ $product->id }}</td>
             {{-- Ô DỮ LIỆU MỚI --}}
             <td>
-                <img src="{{ $product->image }}" alt="{{ $product->name }}" style="width: 75px; height: 75px; object-fit: cover;">
+                <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" style="width: 75px; height: 75px; object-fit: cover;">
             </td>
             {{-- KẾT THÚC PHẦN MỚI --}}
             <td>{{ $product->name }}</td>

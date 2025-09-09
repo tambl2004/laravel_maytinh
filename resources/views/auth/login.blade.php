@@ -6,7 +6,7 @@
 <div class="auth-container">
     <div class="container">
         <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-lg-5 col-md-7">
+            <div class="col-lg-4 col-md-7">
                 <div class="auth-card">
                     <div class="card border-0 shadow-lg">
                         <div class="card-body p-5">
@@ -19,22 +19,7 @@
                                 <p class="text-muted">Vui lòng đăng nhập để tiếp tục</p>
                             </div>
 
-                            <!-- Social Login Buttons -->
-                            <div class="social-login mb-4">
-                                <button class="btn btn-outline-danger w-100 mb-3 social-btn">
-                                    <i class="fab fa-google me-2"></i>
-                                    Đăng nhập với Google
-                                </button>
-                                <button class="btn btn-outline-primary w-100 mb-3 social-btn">
-                                    <i class="fab fa-facebook-f me-2"></i>
-                                    Đăng nhập với Facebook
-                                </button>
-                            </div>
 
-                            <!-- Divider -->
-                            <div class="auth-divider mb-4">
-                                <span class="divider-text">hoặc</span>
-                            </div>
 
                             <!-- Login Form -->
                             <form method="POST" action="{{ route('login') }}" class="auth-form">
@@ -48,7 +33,7 @@
                                 @endif
 
                                 <div class="form-floating mb-3">
-                                    <input type="email" 
+                                    <input type="emai   l" 
                                            class="form-control form-control-lg @error('email') is-invalid @enderror" 
                                            id="email" 
                                            name="email" 

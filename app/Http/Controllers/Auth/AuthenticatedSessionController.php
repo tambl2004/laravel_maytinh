@@ -32,7 +32,8 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(route('admin.dashboard'));
         }
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Khách hàng: đưa về trang home
+        return redirect()->intended(route('home'));
     }
 
     /**

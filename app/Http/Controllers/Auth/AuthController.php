@@ -39,8 +39,8 @@ class AuthController extends Controller
         // Đăng nhập cho user
         Auth::login($user);
 
-        // Chuyển hướng đến trang thông báo cần xác thực
-        return redirect()->route('verification.notice');
+        // Quay lại trang đăng ký với thông báo thành công
+        return back()->with('registration_success', 'Đăng ký thành công! Chúng tôi đã gửi email xác thực đến địa chỉ email của bạn. Vui lòng kiểm tra email và nhấp vào liên kết xác thực để hoàn tất việc đăng ký.');
     }
 
     // ----- ĐĂNG NHẬP -----
@@ -62,7 +62,7 @@ class AuthController extends Controller
            $user = Auth::user();
 
            // Nếu user không phải admin và chưa xác thực email
-           if ($user->role !== 'admin' && !$user->hasVerifiedEmail()) {
+           if ($user->role !== 'admin' && is_null($user->email_verified_at)) {
                Auth::logout(); // Đăng xuất họ ra
 
                // Quay lại trang đăng nhập và hiển thị thông báo lỗi

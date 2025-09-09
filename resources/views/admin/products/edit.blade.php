@@ -3,7 +3,7 @@
 @section('content')
 <h1>Sửa sản phẩm: {{ $product->name }}</h1>
 
-<form action="{{ route('admin.products.update', $product) }}" method="POST">
+<form action="{{ route('admin.products.update', $product) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT') {{-- Rất quan trọng: Báo cho Laravel biết đây là request UPDATE --}}
 
@@ -23,9 +23,27 @@
         <label for="stock" class="form-label">Số lượng tồn kho</label>
         <input type="number" class="form-control" id="stock" name="stock" value="{{ old('stock', $product->stock) }}" required>
     </div>
+
     <div class="mb-3">
-        <label for="image" class="form-label">URL Hình ảnh</label>
-        <input type="text" class="form-control" id="image" name="image" value="{{ old('image', $product->image) }}">
+        <label for="category_id" class="form-label">Danh mục</label>
+        <select class="form-select" id="category_id" name="category_id">
+            <option value="">-- Không chọn --</option>
+            @foreach($categories as $category)
+                <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
+                    {{ $category->name }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="image" class="form-label">Ảnh sản phẩm</label>
+        <input type="file" class="form-control" id="image" name="image" accept="image/*">
+        @if($product->image)
+            <div class="mt-2">
+                <img src="/{{ $product->image }}" alt="{{ $product->name }}" style="height: 80px">
+            </div>
+        @endif
     </div>
     <button type="submit" class="btn btn-primary">Cập nhật</button>
 </form>

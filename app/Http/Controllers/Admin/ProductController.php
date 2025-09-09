@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product; // <--- DÒNG QUAN TRỌNG BẠN ĐÃ NÓI
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -16,7 +18,8 @@ class ProductController extends Controller
 
     public function create()
     {
-        return view('admin.products.create');
+        $categories = Category::orderBy('name')->get();
+        return view('admin.products.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -26,8 +29,21 @@ class ProductController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'image' => 'nullable|url',
+            'category_id' => 'nullable|exists:categories,id',
+            'image' => 'nullable|image|max:2048',
         ]);
+
+        // Xử lý upload ảnh vào storage/app/public/products
+        if ($request->hasFile('image')) {
+            // Lưu ảnh và trả về đường dẫn tương đối dạng storage/products/...
+            // Đặt tên file ngắn gọn: slug-ten-<timestamp>.<ext>
+            $originalName = pathinfo($request->file('image')->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeName = str($originalName)->slug('-');
+            $extension = $request->file('image')->getClientOriginalExtension();
+            $fileName = $safeName.'-'.time().'.'.$extension;
+            $path = $request->file('image')->storeAs('products', $fileName, 'public');
+            $validated['image'] = 'storage/' . $path; // Lưu đường dẫn public để hiển thị
+        }
 
         Product::create($validated);
 
@@ -39,7 +55,8 @@ class ProductController extends Controller
     // Hiển thị form để sửa sản phẩm
     public function edit(Product $product)
     {
-        return view('admin.products.edit', compact('product'));
+        $categories = Category::orderBy('name')->get();
+        return view('admin.products.edit', compact('product', 'categories'));
     }
 
     // --- HÀM MỚI ---
@@ -51,8 +68,18 @@ class ProductController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'image' => 'nullable|url',
+            'category_id' => 'nullable|exists:categories,id',
+            'image' => 'nullable|image|max:2048',
         ]);
+
+        if ($request->hasFile('image')) {
+            $originalName = pathinfo($request->file('image')->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeName = str($originalName)->slug('-');
+            $extension = $request->file('image')->getClientOriginalExtension();
+            $fileName = $safeName.'-'.time().'.'.$extension;
+            $path = $request->file('image')->storeAs('products', $fileName, 'public');
+            $validated['image'] = 'storage/' . $path;
+        }
 
         $product->update($validated);
 

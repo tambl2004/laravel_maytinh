@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-use Illuminate\Http\Request;
 
 // --- Import Controllers ---
 // Controllers cho Khách hàng
@@ -11,6 +9,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ProfileController;
 
 // Controllers cho Xác thực
 use App\Http\Controllers\Auth\AuthController;
@@ -35,6 +34,18 @@ use App\Http\Controllers\HomeController;
 // Trang chủ mới với sản phẩm nổi bật
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Dashboard cho người dùng thường
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+// Hồ sơ người dùng (sửa, cập nhật, xoá tài khoản)
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
 // Trang hiển thị TẤT CẢ sản phẩm (trang chủ cũ)
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
@@ -43,6 +54,8 @@ Route::get('/contact', [ContactController::class, 'index'])->name('contact.index
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 Route::get('/my-addresses', [AddressController::class, 'index'])->name('addresses.index');
 Route::post('/my-addresses', [AddressController::class, 'store'])->name('addresses.store');
+Route::patch('/my-addresses/{address}', [AddressController::class, 'update'])->name('addresses.update');
+Route::post('/my-addresses/{address}/default', [AddressController::class, 'setDefault'])->name('addresses.setDefault');
 Route::delete('/my-addresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
 
 /*
@@ -60,19 +73,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // --- Email Verification ---
-Route::get('/email/verify', function () {
-    return view('auth.verify-email');
-})->middleware('auth')->name('verification.notice');
-
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-    return redirect()->route('products.index')->with('success', 'Email của bạn đã được xác thực thành công!');
-})->middleware(['auth', 'signed'])->name('verification.verify');
-
-Route::post('/email/verify/resend', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-    return back()->with('resent', true);
-})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+// Các route xác thực đã được định nghĩa tập trung trong routes/auth.php
 
 
 /*
@@ -117,3 +118,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('orders', AdminOrderController::class)->only(['index', 'show', 'update']);
     Route::resource('users', AdminUserController::class);
 });
+
+// Nạp nhóm route xác thực (register/login/verify...) để có route verification.verify
+require __DIR__.'/auth.php';

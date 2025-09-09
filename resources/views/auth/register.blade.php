@@ -6,7 +6,7 @@
 <div class="auth-container">
     <div class="container">
         <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-lg-6 col-md-8">
+            <div class="col-lg-5 col-md-8">
                 <div class="auth-card">
                     <div class="card border-0 shadow-lg">
                         <div class="card-body p-5">
@@ -16,26 +16,23 @@
                                     <i class="fas fa-backpack fa-3x text-primary"></i>
                                 </div>
                                 <h2 class="fw-bold mb-2">Tạo tài khoản mới</h2>
-                                <p class="text-muted">Tham gia cộng đồng Balo Shop ngay hôm nay</p>
                             </div>
 
-                            <!-- Social Registration Buttons -->
-                            <div class="social-login mb-4">
-                                <button class="btn btn-outline-danger w-100 mb-3 social-btn">
-                                    <i class="fab fa-google me-2"></i>
-                                    Đăng ký với Google
-                                </button>
-                                <button class="btn btn-outline-primary w-100 mb-3 social-btn">
-                                    <i class="fab fa-facebook-f me-2"></i>
-                                    Đăng ký với Facebook
-                                </button>
-                            </div>
-
-                            <!-- Divider -->
-                            <div class="auth-divider mb-4">
-                                <span class="divider-text">hoặc</span>
-                            </div>
-
+                            <!-- Success Message -->
+                            @if(session('registration_success'))
+                                <div class="alert alert-success border-0 rounded-3 mb-4">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-check-circle me-3 text-success mt-1"></i>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 fw-bold">Đăng ký thành công!</h6>
+                                            <p class="mb-2 small">{{ session('registration_success') }}</p>
+                                            <a href="{{ route('login') }}" class="btn btn-success btn-sm">
+                                                <i class="fas fa-sign-in-alt me-1"></i>Đi đến trang đăng nhập
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                             <!-- Registration Form -->
                             <form method="POST" action="{{ route('register') }}" class="auth-form">
                                 @csrf
@@ -45,7 +42,7 @@
                                            class="form-control form-control-lg @error('name') is-invalid @enderror" 
                                            id="name" 
                                            name="name" 
-                                           value="{{ old('name') }}" 
+                                           value="{{ session('registration_success') ? '' : old('name') }}" 
                                            placeholder="Nguyễn Văn A"
                                            required>
                                     <label for="name">
@@ -61,7 +58,7 @@
                                            class="form-control form-control-lg @error('email') is-invalid @enderror" 
                                            id="email" 
                                            name="email" 
-                                           value="{{ old('email') }}" 
+                                           value="{{ session('registration_success') ? '' : old('email') }}" 
                                            placeholder="name@example.com"
                                            required>
                                     <label for="email">

@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory;
-     // Thêm dòng này
-     protected $fillable = ['name', 'description', 'price', 'stock', 'image'];
+     // Cho phép gán giá trị hàng loạt cho các cột chính của sản phẩm
+     protected $fillable = ['name', 'description', 'price', 'stock', 'image', 'category_id'];
      // Thêm vào trong class Product
     public function category()
     {
