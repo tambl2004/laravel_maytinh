@@ -12,7 +12,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::latest()->paginate(10);
+        $products = Product::with('category')->latest()->paginate(10);
         return view('admin.products.index', compact('products'));
     }
 
@@ -30,19 +30,12 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'nullable|exists:categories,id',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|url|max:500',
         ]);
 
-        // Xử lý upload ảnh vào storage/app/public/products
-        if ($request->hasFile('image')) {
-            // Lưu ảnh và trả về đường dẫn tương đối dạng storage/products/...
-            // Đặt tên file ngắn gọn: slug-ten-<timestamp>.<ext>
-            $originalName = pathinfo($request->file('image')->getClientOriginalName(), PATHINFO_FILENAME);
-            $safeName = str($originalName)->slug('-');
-            $extension = $request->file('image')->getClientOriginalExtension();
-            $fileName = $safeName.'-'.time().'.'.$extension;
-            $path = $request->file('image')->storeAs('products', $fileName, 'public');
-            $validated['image'] = 'storage/' . $path; // Lưu đường dẫn public để hiển thị
+        // Lưu trực tiếp URL ảnh từ internet
+        if ($request->filled('image')) {
+            $validated['image'] = $request->image;
         }
 
         Product::create($validated);
@@ -69,16 +62,12 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'category_id' => 'nullable|exists:categories,id',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|url|max:500',
         ]);
 
-        if ($request->hasFile('image')) {
-            $originalName = pathinfo($request->file('image')->getClientOriginalName(), PATHINFO_FILENAME);
-            $safeName = str($originalName)->slug('-');
-            $extension = $request->file('image')->getClientOriginalExtension();
-            $fileName = $safeName.'-'.time().'.'.$extension;
-            $path = $request->file('image')->storeAs('products', $fileName, 'public');
-            $validated['image'] = 'storage/' . $path;
+        // Lưu trực tiếp URL ảnh từ internet
+        if ($request->filled('image')) {
+            $validated['image'] = $request->image;
         }
 
         $product->update($validated);

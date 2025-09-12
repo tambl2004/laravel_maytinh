@@ -20,11 +20,7 @@ class CheckoutController extends Controller
 
         $addresses = Auth::user()->addresses()->latest()->get();
 
-        // Quan trọng: Nếu user chưa có địa chỉ, chuyển hướng họ đến trang quản lý địa chỉ
-        if ($addresses->isEmpty()) {
-            return redirect()->route('addresses.index')->with('info', 'Vui lòng thêm địa chỉ nhận hàng trước khi thanh toán.');
-        }
-
+        // Luôn hiển thị trang checkout, không chuyển hướng nữa
         return view('customer.checkout.index', compact('cart', 'addresses'));
     }
 

@@ -20,6 +20,13 @@ class AddressController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'address' => 'required|string|max:500',
+            'province_id' => 'nullable|string',
+            'province_name' => 'nullable|string',
+            'district_id' => 'nullable|string',
+            'district_name' => 'nullable|string',
+            'ward_id' => 'nullable|string',
+            'ward_name' => 'nullable|string',
+            'detail_address' => 'nullable|string|max:500',
         ]);
 
         // Nếu là địa chỉ đầu tiên, đặt mặc định
@@ -29,6 +36,13 @@ class AddressController extends Controller
             'name' => $request->name,
             'phone' => $request->phone,
             'address' => $request->address,
+            'province_id' => $request->province_id,
+            'province_name' => $request->province_name,
+            'district_id' => $request->district_id,
+            'district_name' => $request->district_name,
+            'ward_id' => $request->ward_id,
+            'ward_name' => $request->ward_name,
+            'detail_address' => $request->detail_address,
             'is_default' => $isFirstAddress,
         ]);
 
@@ -55,6 +69,13 @@ class AddressController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'address' => 'required|string|max:500',
+            'province_id' => 'nullable|string',
+            'province_name' => 'nullable|string',
+            'district_id' => 'nullable|string',
+            'district_name' => 'nullable|string',
+            'ward_id' => 'nullable|string',
+            'ward_name' => 'nullable|string',
+            'detail_address' => 'nullable|string|max:500',
         ]);
 
         $address->update($validated);

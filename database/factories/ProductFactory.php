@@ -9,17 +9,19 @@ class ProductFactory extends Factory
 {
     public function definition(): array
     {
-        // --- Dữ liệu nguồn để tạo sản phẩm balo ---
-        $brands = ['Nike', 'Adidas', 'The North Face', 'JanSport', 'Herschel'];
+        // --- Dữ liệu nguồn để tạo sản phẩm laptop ---
+        $brands = ['Dell', 'HP', 'Lenovo', 'Asus', 'Acer', 'MSI', 'MacBook'];
         $models = [
-            'Nike' => ['Brasilia Backpack', 'Heritage Backpack', 'Academy Backpack', 'Elemental Backpack'],
-            'Adidas' => ['Classic 3-Stripes', 'Originals Backpack', 'Power Backpack', 'Linear Core'],
-            'The North Face' => ['Borealis Backpack', 'Jester Backpack', 'Recon Backpack', 'Vault Backpack'],
-            'JanSport' => ['SuperBreak', 'Right Pack', 'High Stakes', 'Cool Student'],
-            'Herschel' => ['Little America', 'Novel Duffle', 'Settlement Backpack', 'Pop Quiz'],
+            'Dell' => ['Inspiron 15', 'XPS 13', 'Latitude 14', 'Precision 15', 'Vostro 15'],
+            'HP' => ['Pavilion 15', 'EliteBook 14', 'ProBook 15', 'Envy 13', 'Spectre x360'],
+            'Lenovo' => ['ThinkPad E15', 'IdeaPad 3', 'Yoga 7i', 'Legion 5', 'ThinkBook 15'],
+            'Asus' => ['VivoBook 15', 'ZenBook 14', 'ROG Strix G15', 'TUF Gaming A15', 'ExpertBook B9'],
+            'Acer' => ['Aspire 5', 'Swift 3', 'Nitro 5', 'Predator Helios', 'TravelMate P2'],
+            'MSI' => ['Modern 15', 'Prestige 14', 'GF63 Thin', 'Creator 15', 'Stealth 15M'],
+            'MacBook' => ['MacBook Air M2', 'MacBook Pro 13', 'MacBook Pro 14', 'MacBook Pro 16']
         ];
-        $specs = ['(25L)', '(30L)', '(20L)', '(35L)'];
-        $colors = ['Đen', 'Xanh Navy', 'Xám', 'Nâu', 'Xanh Dương'];
+        $specs = ['8GB RAM/256GB SSD', '16GB RAM/512GB SSD', '8GB RAM/512GB SSD', '16GB RAM/1TB SSD', '32GB RAM/1TB SSD'];
+        $colors = ['Đen', 'Bạc', 'Xám', 'Vàng', 'Xanh'];
 
         // --- Logic tạo sản phẩm ---
         $brand = Arr::random($brands);
@@ -27,15 +29,17 @@ class ProductFactory extends Factory
         $spec = Arr::random($specs);
         $color = Arr::random($colors);
 
-        $productName = "Balo {$brand} {$model} {$spec} - {$color}";
+        $productName = "Laptop {$brand} {$model} {$spec} - {$color}";
         
         $priceRanges = [
-            'The North Face' => [1500000, 3500000],
-            'Herschel' => [1200000, 2800000],
-            'Nike' => [800000, 2000000],
-            'Adidas' => [700000, 1800000],
-            'JanSport' => [500000, 1500000],
-            'default' => [400000, 1200000]
+            'MacBook' => [25000000, 45000000],
+            'Dell' => [15000000, 35000000],
+            'HP' => [12000000, 30000000],
+            'Lenovo' => [10000000, 28000000],
+            'Asus' => [8000000, 25000000],
+            'MSI' => [18000000, 40000000],
+            'Acer' => [7000000, 20000000],
+            'default' => [5000000, 15000000]
         ];
 
         $priceKey = $brand;
@@ -45,27 +49,24 @@ class ProductFactory extends Factory
 
         $price = fake()->numberBetween($priceRanges[$priceKey][0], $priceRanges[$priceKey][1]);
 
-        // Generate backpack images using Unsplash
-        $imageKeywords = ['backpack', 'rucksack', 'schoolbag', 'hiking+backpack', 'travel+backpack'];
-        $randomKeyword = Arr::random($imageKeywords);
-        $imageUrl = "https://images.unsplash.com/photo-" . fake()->numberBetween(1500000000000, 1700000000000) . "?w=400&h=400&fit=crop&crop=center&q=80";
-        
-        // Alternative: Use a more reliable backpack image URL
-        $backpackImages = [
-            'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop&crop=center',
-            'https://images.unsplash.com/photo-1622260614153-03223fb72052?w=400&h=400&fit=crop&crop=center',
-            'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=400&h=400&fit=crop&crop=center',
-            'https://images.unsplash.com/photo-1581115293892-c5b2c71ccb7d?w=400&h=400&fit=crop&crop=center',
-            'https://images.unsplash.com/photo-1570804881642-0ed475d2da2b?w=400&h=400&fit=crop&crop=center'
+        // Generate laptop images using Unsplash
+        $laptopImages = [
+            'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400&h=400&fit=crop&crop=center',
+            'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=400&h=400&fit=crop&crop=center'
         ];
-        $imageUrl = Arr::random($backpackImages);
-
+        $imageUrl = Arr::random($laptopImages);
 
         return [
             'name' => $productName,
-            'description' => "Khám phá phong cách và tiện ích với {$productName}. Thiết kế hiện đại, chất liệu cao cấp và khả năng chứa đồ tối ưu cho mọi hoạt động từ học tập, làm việc đến du lịch. Sản phẩm chính hãng, bảo hành 12 tháng.",
+            'description' => "Trải nghiệm hiệu suất vượt trội với {$productName}. Thiết kế hiện đại, cấu hình mạnh mẽ và hiệu năng cao phù hợp cho công việc, học tập và giải trí. Sản phẩm chính hãng, bảo hành 24 tháng.",
             'price' => $price,
-            'stock' => fake()->numberBetween(10, 100),
+            'stock' => fake()->numberBetween(5, 50),
             'image' => $imageUrl,
         ];
     }

@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ asset('css/base-styles.css') }}">
     <link rel="stylesheet" href="{{ asset('css/product-styles.css') }}">
     <link rel="stylesheet" href="{{ asset('css/cart-checkout-styles.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/address-styles.css') }}">
     @yield('styles')
 </head>
 <body>
@@ -19,7 +20,7 @@
         <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary shadow-sm">
             <div class="container">
                 <a class="navbar-brand fw-bold" href="{{ route('home') }}">
-                    <i class="fas fa-backpack me-2"></i>Balo Shop
+                    <i class="fas fa-backpack me-2"></i>Shop Laptop
                 </a>
                 <ul class="navbar-nav ms-auto d-flex flex-row align-items-center">
                     <li class="nav-item">
@@ -39,7 +40,7 @@
                     </li>
                     <li class="nav-item me-3">
                         <a class="nav-link position-relative" href="{{ route('cart.index') }}">
-                            <i class="fas fa-shopping-cart me-1"></i>Giỏ hàng 
+                            <i class="fas fa-shopping-cart me-1"></i>
                             @if(count((array) session('cart')) > 0)
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
                                     {{ count((array) session('cart')) }}
@@ -55,7 +56,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link btn btn-warning btn-sm px-3 text-dark" href="{{ route('register') }}">
+                            <a class="nav-link btn btn-sm px-3 text-dark" href="{{ route('register') }}">
                                 <i class="fas fa-user-plus me-1"></i>Đăng ký
                             </a>
                         </li>
@@ -107,9 +108,9 @@
                 <div class="row">
                     <div class="col-lg-4 mb-4">
                         <h5 class="fw-bold mb-3">
-                            <i class="fas fa-backpack me-2 text-warning"></i>Balo Shop
+                            <i class="fas fa-backpack me-2 text-warning"></i>Shop Laptop
                         </h5>
-                        <p class="text-muted mb-3">Đồng hành cùng mọi hành trình của bạn với những chiếc balo chất lượng cao, phong cách và tiện dụng.</p>
+                        <p class="text-muted mb-3">Đồng hành cùng mọi hành trình của bạn với những chiếc laptop chất lượng cao, phong cách và tiện dụng.</p>
                         <div class="social-links">
                             <a href="#" class="text-white me-3"><i class="fab fa-facebook fa-lg"></i></a>
                             <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
@@ -139,7 +140,7 @@
                         <div class="contact-info">
                             <p class="text-white-50 mb-2">
                                 <i class="fas fa-map-marker-alt me-2"></i>
-                                123 Đường ABC, Quận XYZ, TP.HCM
+                                Trường Đại học tài nguyên và môi trường Hà Nội
                             </p>
                             <p class="text-white-50 mb-2">
                                 <i class="fas fa-phone me-2"></i>
@@ -147,7 +148,7 @@
                             </p>
                             <p class="text-white-50 mb-2">
                                 <i class="fas fa-envelope me-2"></i>
-                                info@baloshop.vn
+                                info@gmail.com
                             </p>
                         </div>
                     </div>

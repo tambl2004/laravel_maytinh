@@ -19,7 +19,8 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
-use App\Http\Controllers\Admin\UserController as AdminUserController; 
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\ReportController; 
 
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\HomeController;
@@ -113,6 +114,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/chart-data', [ReportController::class, 'getChartData'])->name('reports.chart-data');
     Route::resource('products', AdminProductController::class);
     Route::resource('categories', AdminCategoryController::class);
     Route::resource('orders', AdminOrderController::class)->only(['index', 'show', 'update']);

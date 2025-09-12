@@ -77,7 +77,11 @@
                                                                 </div>
                                                                 <div class="address-location">
                                                                     <i class="fas fa-map-marker-alt me-2 text-muted"></i>
-                                                                    <span>{{ $address->address }}</span>
+                                                                    @if($address->full_address)
+                                                                        <span>{{ $address->full_address }}</span>
+                                                                    @else
+                                                                        <span>{{ $address->address }}</span>
+                                                                    @endif
                                                                 </div>
                                                             </div>
                                                             <div class="address-badge">
@@ -95,13 +99,13 @@
                             @endforeach
                         @else
                             <div class="no-address-card">
-                                <div class="card border-2 border-warning bg-warning bg-opacity-10">
+                                <div class="card border-2 bg-opacity-10">
                                     <div class="card-body text-center p-5">
-                                        <i class="fas fa-map-marker-alt text-warning mb-3" style="font-size: 3rem;"></i>
-                                        <h5 class="fw-bold mb-3">Chưa có địa chỉ giao hàng</h5>
-                                        <p class="text-muted mb-4">Bạn cần thêm ít nhất một địa chỉ để tiếp tục thanh toán</p>
-                                        <a href="{{ route('addresses.index') }}" class="btn btn-warning">
-                                            <i class="fas fa-plus me-2"></i>Thêm địa chỉ mới
+                                        <i class="fas fa-exclamation-triangle text-danger mb-3" style="font-size: 3rem;"></i>
+                                        <h5 class="fw-bold mb-3 text-danger">Bạn chưa có địa chỉ giao hàng</h5>
+                                        <p class="text-muted mb-4">Vui lòng thêm ít nhất một địa chỉ để có thể tiếp tục thanh toán đơn hàng</p>
+                                        <a href="{{ route('addresses.index') }}" class="btn btn-danger">
+                                            <i class="fas fa-plus me-2"></i>Thêm địa chỉ ngay
                                         </a>
                                     </div>
                                 </div>
