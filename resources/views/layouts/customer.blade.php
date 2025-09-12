@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ asset('css/product-styles.css') }}">
     <link rel="stylesheet" href="{{ asset('css/cart-checkout-styles.css') }}">
     <link rel="stylesheet" href="{{ asset('css/address-styles.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/news-styles.css') }}">
     @yield('styles')
 </head>
 <body>
@@ -31,6 +32,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('products.index') }}">
                             <i class="fas fa-backpack me-1"></i>Sản phẩm
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('news.index') }}">
+                            <i class="fas fa-newspaper me-1"></i>Tin tức
                         </a>
                     </li>
                     <li class="nav-item">

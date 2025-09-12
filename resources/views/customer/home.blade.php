@@ -7,11 +7,24 @@
 <div class="hero-banner">
     <div class="hero-carousel">
         <!-- Slide 1 -->
-        <div class="hero-slide active"></div>
+        <div class="hero-slide active">
+        </div>
+        
         <!-- Slide 2 -->
-        <div class="hero-slide"></div>
+        <div class="hero-slide">
+        </div>
+        
         <!-- Slide 3 -->
-        <div class="hero-slide"></div>
+        <div class="hero-slide">
+        </div>
+        
+        <!-- Navigation Arrows -->
+        <button class="carousel-nav prev" onclick="changeSlide(-1)">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="carousel-nav next" onclick="changeSlide(1)">
+            <i class="fas fa-chevron-right"></i>
+        </button>
         
         <!-- Overlay -->
         <div class="hero-overlay"></div>
@@ -176,6 +189,75 @@
     </div>
 </div>
 
+<!-- Featured News Section -->
+@if($featuredNews->count() > 0)
+<div class="container py-5" id="featured-news">
+    <div class="section-header text-center mb-5">
+        <h2 class="display-5 fw-bold mb-3">Tin tức nổi bật</h2>
+        <p class="lead text-muted">Cập nhật những tin tức mới nhất về công nghệ</p>
+        <div class="divider mx-auto"></div>
+    </div>
+    
+    <div class="row">
+        @foreach($featuredNews as $news)
+        <div class="col-lg-4 col-md-6 mb-4">
+            <article class="news-card h-100">
+                <div class="card border-0 shadow-sm rounded-3 h-100">
+                    @if($news->featured_image)
+                    <div class="news-image">
+                        <img src="{{ $news->featured_image }}" alt="{{ $news->title }}" class="card-img-top">
+                        <div class="featured-badge">
+                            <i class="fas fa-star"></i>
+                            <span>Nổi bật</span>
+                        </div>
+                    </div>
+                    @endif
+                    
+                    <div class="card-body d-flex flex-column">
+                        <div class="news-meta mb-3">
+                            <div class="d-flex align-items-center text-muted small">
+                                <i class="fas fa-user me-2"></i>
+                                <span>{{ $news->author }}</span>
+                                <i class="fas fa-calendar ms-3 me-2"></i>
+                                <span>{{ $news->created_at->format('d/m/Y') }}</span>
+                                <i class="fas fa-eye ms-3 me-2"></i>
+                                <span>{{ $news->views }}</span>
+                            </div>
+                        </div>
+                        
+                        <h5 class="card-title mb-3">
+                            <a href="{{ route('news.show', $news->slug) }}" class="text-decoration-none text-dark">
+                                {{ Str::limit($news->title, 60) }}
+                            </a>
+                        </h5>
+                        
+                        @if($news->excerpt)
+                        <p class="card-text text-muted flex-grow-1">
+                            {{ Str::limit($news->excerpt, 100) }}
+                        </p>
+                        @endif
+                        
+                        <div class="news-actions mt-auto">
+                            <a href="{{ route('news.show', $news->slug) }}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-right me-2"></i>Đọc tiếp
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+        @endforeach
+    </div>
+    
+    <!-- View All News Button -->
+    <div class="text-center mt-4">
+        <a href="{{ route('news.index') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-newspaper me-2"></i>Xem tất cả tin tức
+        </a>
+    </div>
+</div>
+@endif
+
 <!-- Call to Action Section -->
 <div class="cta-section py-5">
     <div class="container">
@@ -195,10 +277,12 @@
 @section('scripts')
 <script>
     // Hero Carousel functionality
+    let currentSlide = 0;
+    let slideInterval;
+    
     document.addEventListener('DOMContentLoaded', function() {
         const slides = document.querySelectorAll('.hero-slide');
         const dots = document.querySelectorAll('.carousel-dot');
-        let currentSlide = 0;
         const totalSlides = slides.length;
         
         function showSlide(index) {
@@ -206,6 +290,7 @@
             dots.forEach(dot => dot.classList.remove('active'));
             slides[index].classList.add('active');
             dots[index].classList.add('active');
+            currentSlide = index;
         }
         
         function nextSlide() {
@@ -213,17 +298,65 @@
             showSlide(currentSlide);
         }
         
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            showSlide(currentSlide);
+        }
+        
         // Tự động chuyển slide mỗi 5 giây
-        setInterval(nextSlide, 5000);
+        function startSlideShow() {
+            slideInterval = setInterval(nextSlide, 5000);
+        }
+        
+        function stopSlideShow() {
+            clearInterval(slideInterval);
+        }
         
         // Click vào dots để chuyển slide
         dots.forEach((dot, index) => {
             dot.addEventListener('click', () => {
-                currentSlide = index;
-                showSlide(currentSlide);
+                showSlide(index);
+                stopSlideShow();
+                startSlideShow(); // Restart autoplay
             });
         });
+        
+        // Start slideshow
+        startSlideShow();
+        
+        // Pause on hover
+        const carousel = document.querySelector('.hero-carousel');
+        carousel.addEventListener('mouseenter', stopSlideShow);
+        carousel.addEventListener('mouseleave', startSlideShow);
     });
+    
+    // Global function for navigation arrows
+    function changeSlide(direction) {
+        const slides = document.querySelectorAll('.hero-slide');
+        const dots = document.querySelectorAll('.carousel-dot');
+        const totalSlides = slides.length;
+        
+        if (direction === 1) {
+            currentSlide = (currentSlide + 1) % totalSlides;
+        } else {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+        }
+        
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+        
+        // Restart autoplay
+        clearInterval(slideInterval);
+        slideInterval = setInterval(() => {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            slides[currentSlide].classList.add('active');
+            dots[currentSlide].classList.add('active');
+        }, 5000);
+    }
     
     // Add to Cart functionality
     document.querySelectorAll('.add-to-cart-form').forEach(form => {

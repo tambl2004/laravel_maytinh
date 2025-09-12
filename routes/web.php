@@ -22,8 +22,10 @@ use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\ReportController; 
 
-use App\Http\Controllers\AddressController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\Admin\NewsController as AdminNewsController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\AddressController;
 /*
 |--------------------------------------------------------------------------
 | KHU VỰC ROUTE CHO KHÁCH (GUEST & CUSTOMER)
@@ -49,8 +51,12 @@ Route::middleware('auth')->group(function () {
 
 // Trang hiển thị TẤT CẢ sản phẩm (trang chủ cũ)
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+
+// Tin tức
+Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
+
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/contact', [ContactController::class, 'send'])->name('contact.send');
 Route::get('/my-addresses', [AddressController::class, 'index'])->name('addresses.index');
@@ -120,6 +126,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('categories', AdminCategoryController::class);
     Route::resource('orders', AdminOrderController::class)->only(['index', 'show', 'update']);
     Route::resource('users', AdminUserController::class);
+    Route::resource('news', AdminNewsController::class);
 });
 
 // Nạp nhóm route xác thực (register/login/verify...) để có route verification.verify

@@ -11,13 +11,7 @@
                 <h1 class="display-5 fw-bold mb-2">
                     <i class="fas fa-box text-primary me-3"></i>Đơn hàng của tôi
                 </h1>
-                <p class="lead text-muted mb-0">Theo dõi tình trạng đơn hàng và lịch sử mua hàng của bạn</p>
-            </div>
-            <div class="col-md-4 text-md-end">
-                <a href="{{ route('products.index') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
-                </a>
-            </div>
+          </div>     
         </div>
     </div>
 
