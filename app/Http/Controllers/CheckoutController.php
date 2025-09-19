@@ -27,9 +27,21 @@ class CheckoutController extends Controller
     public function store(Request $request)
     {
         // Validate rằng người dùng đã chọn một địa chỉ
-        $request->validate([
-            'address_id' => 'required|exists:addresses,id',
-        ]);
+        try {
+            $request->validate([
+                'address_id' => 'required|exists:addresses,id',
+                'payment_method' => 'required|in:cod,momo'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dữ liệu không hợp lệ: ' . $e->getMessage(),
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        }
 
         $cart = session()->get('cart', []);
         $address = Address::find($request->address_id);
@@ -50,10 +62,12 @@ class CheckoutController extends Controller
             $order = Order::create([
                 'user_id' => Auth::id(),
                 'customer_name' => $address->name,
-                'customer_email' => Auth::user()->email, // Lấy email từ user đang đăng nhập
+                'customer_email' => Auth::user()->email,
                 'customer_phone' => $address->phone,
                 'customer_address' => $address->address,
                 'total_amount' => $total,
+                'payment_method' => $request->payment_method,
+                'payment_status' => $request->payment_method === 'momo' ? 'pending' : 'pending'
             ]);
 
             foreach ($cart as $id => $details) {
@@ -69,10 +83,41 @@ class CheckoutController extends Controller
             DB::commit();
             session()->forget('cart');
 
-            return redirect()->route('checkout.success', $order);
+            // Handle different payment methods
+            if ($request->payment_method === 'momo') {
+                // Return JSON for MoMo payment (for AJAX requests)
+                if ($request->expectsJson() || $request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
+                    return response()->json([
+                        'success' => true,
+                        'order_id' => $order->id,
+                        'message' => 'Đơn hàng đã được tạo thành công'
+                    ]);
+                }
+                // Fallback redirect for non-AJAX requests
+                return redirect()->route('orders.show', $order->id)
+                    ->with('info', 'Đơn hàng đã được tạo. Vui lòng hoàn tất thanh toán MoMo.');
+            } else {
+                // COD payment - redirect to success page
+                return redirect()->route('checkout.success', $order);
+            }
 
         } catch (\Exception $e) {
             DB::rollBack();
+            
+            // Log the error for debugging
+            \Log::error('Checkout Error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'payment_method' => $request->payment_method ?? 'unknown',
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson() || $request->header('Accept') === 'application/json') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Đã có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại.'
+                ], 500);
+            }
+            
             return back()->with('error', 'Đã có lỗi xảy ra, vui lòng thử lại.');
         }
     }

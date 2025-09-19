@@ -54,7 +54,14 @@
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                 <div class="modern-product-card">
                     <!-- Hình ảnh sản phẩm -->
-                    <div class="product-image-container">
+                    <div class="product-image-container position-relative">
+                        @php $runningPromo = \Illuminate\Support\Facades\Schema::hasTable('promotions') ? $product->promotions->firstWhere(fn($p) => $p->isRunning()) : null; @endphp
+                        @if($runningPromo)
+                            <div class="promo-badge">{{ $runningPromo->type==='percent' ? (int)$runningPromo->value.'%' : (number_format($runningPromo->value,0,',','.').'₫') }} OFF</div>
+                        @endif
+                        <button class="btn-wishlist wishlist-toggle" data-id="{{ $product->id }}" aria-label="Thêm yêu thích">
+                            <i class="fas fa-heart"></i>
+                        </button>
                         <img src="{{ $product->image }}" class="product-img" alt="{{ $product->name }}">
                         
                         <!-- Badge trạng thái kho -->
@@ -92,13 +99,11 @@
                             @endif
                             <div class="rating">
                                 <div class="stars">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="far fa-star"></i>
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star {{ $i <= round($product->average_rating) ? 'text-warning' : 'text-muted' }}"></i>
+                                    @endfor
                                 </div>
-                                <span class="rating-count">(4.0)</span>
+                                <span class="rating-count">({{ number_format($product->average_rating, 1) }})</span>
                             </div>
                         </div>
                         
@@ -112,7 +117,15 @@
                         
                         <!-- Giá và kho -->
                         <div class="price-section">
-                            <div class="price">{{ number_format($product->price, 0, ',', '.') }}₫</div>
+                            @php $discountPrice = \Illuminate\Support\Facades\Schema::hasTable('promotions') ? $product->discounted_price : $product->price; @endphp
+                            @if($discountPrice < $product->price)
+                                <div class="price">
+                                    <span class="text-danger fw-bold">{{ number_format($discountPrice, 0, ',', '.') }}₫</span>
+                                    <span class="text-muted text-decoration-line-through ms-2">{{ number_format($product->price, 0, ',', '.') }}₫</span>
+                                </div>
+                            @else
+                                <div class="price">{{ number_format($product->price, 0, ',', '.') }}₫</div>
+                            @endif
                             <div class="stock-info">
                                 @if($product->stock > 0)
                                     <span class="in-stock">Còn {{ $product->stock }} sản phẩm</span>
@@ -226,6 +239,16 @@
                     button.disabled = false;
                 }, 2000);
             });
+        });
+    });
+    // Wishlist toggle
+    document.querySelectorAll('.wishlist-toggle').forEach(btn => {
+        btn.addEventListener('click', function(e){
+            e.preventDefault();
+            const id = this.getAttribute('data-id');
+            fetch(`/wishlist/add/${id}`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } })
+                .then(r => r.json())
+                .then(data => { if (data.success) this.classList.add('active'); });
         });
     });
 </script>

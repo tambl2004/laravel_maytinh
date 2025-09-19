@@ -21,6 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail // <-- SỬA DÒNG
         'email',
         'password',
         'role', // Thêm 'role' vào đây nếu bạn chưa có
+        'google_id', // Thêm google_id để hỗ trợ OAuth
     ];
 
     /**
@@ -53,5 +54,11 @@ class User extends Authenticatable implements MustVerifyEmail // <-- SỬA DÒNG
     public function addresses()
     {
         return $this->hasMany(Address::class);
+    }
+    
+    // Relationship với Review
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
     }
 }

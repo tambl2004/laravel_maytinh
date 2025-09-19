@@ -163,6 +163,112 @@
     border-color: #2563eb;
 }
 
+/* New full redesign blocks for Product Detail */
+.product-detail-new .breadcrumb { color: #6b7280; }
+.gallery-vertical .thumbs { width: 88px; }
+.gallery-vertical .thumb-item { 
+    border: 2px solid transparent; 
+    border-radius: 8px; 
+    background: transparent; 
+    padding: 0; 
+    margin-bottom: 8px; 
+}
+.gallery-vertical .thumb-item img { 
+    width: 84px; height: 84px; object-fit: cover; border-radius: 6px; background: #f8f9fa;
+}
+.gallery-vertical .thumb-item.active { border-color: #2563eb; }
+
+.buy-card .benefit-list li { 
+    display: flex; align-items: center; gap: 8px; color: #495057; margin-bottom: 6px; 
+}
+.price-line { border-bottom: 1px dashed #e5e7eb; padding-bottom: 12px; }
+
+.product-tabs .nav-link { font-weight: 600; color: #495057; }
+.product-tabs .nav-link.active { color: #2563eb; }
+
+/* Wishlist heart button - KHÔNG dùng màu tím */
+.btn-wishlist {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid #e5e7eb;
+    color: #ef4444;
+    transition: all .2s ease;
+}
+.btn-wishlist:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.08); }
+.btn-wishlist.active { background:#ef4444; color:#fff; border-color:#ef4444; }
+
+/* Promotion badge */
+.promo-badge {
+    position: absolute;
+    left: 10px; top: 10px;
+    background: linear-gradient(135deg,#f97316,#f59e0b);
+    color:#fff; font-weight:700; font-size:.85rem;
+    padding:4px 8px; border-radius:8px;
+    z-index:3;
+}
+
+/* Rating styles (di chuyển từ inline) */
+.rating-star {
+    color: #dee2e6 !important;
+    cursor: pointer !important;
+    font-size: 1.5rem !important;
+    margin-right: 0.25rem !important;
+    transition: all 0.2s ease !important;
+    user-select: none !important;
+    display: inline-block !important;
+}
+
+.rating-star:hover {
+    transform: scale(1.05) !important;
+    color: #ffc107 !important;
+}
+
+.rating-star.text-warning { color: #ffc107 !important; }
+.rating-star.fas { color: #ffc107 !important; }
+.rating-star.text-muted { color: #dee2e6 !important; }
+
+.rating-input {
+    padding: 0.5rem 0;
+    min-height: 60px;
+    align-items: center;
+}
+
+.rating-input .rating-star {
+    border: 1px solid transparent;
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.rating-input .rating-star:hover {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-color: #ffc107;
+}
+
+/* Đảm bảo FontAwesome icon sao hiển thị đúng */
+.fa-star { font-family: "Font Awesome 6 Free" !important; font-weight: 900 !important; }
+.far.fa-star { font-weight: 400 !important; }
+
+/* Product Info sticky card & actions */
+.product-info { background: transparent; }
+.add-to-cart-section .quantity-input { max-width: 96px; margin: 0 8px; }
+.quantity-btn { width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; }
+
+/* Tabs */
+.product-tabs .nav-link { font-weight: 600; color: #495057; }
+.product-tabs .nav-link.active { color: #2563eb; border-bottom: 2px solid #2563eb; }
+
+/* Trust badges */
+.feature-item i { width: 20px; text-align: center; }
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .product-card {

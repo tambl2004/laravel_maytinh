@@ -16,7 +16,7 @@ class DashboardController extends Controller
         // Thống kê tổng quan
         $totalRevenue = Order::where('status', 'completed')->sum('total_amount');
         $totalOrders = Order::count();
-        $totalCustomers = User::where('role', 'customer')->count();
+        $totalCustomers = User::where('role', 'user')->count(); // Fix: changed from 'customer' to 'user'
         $totalProducts = Product::count();
 
         // Thống kê hôm nay

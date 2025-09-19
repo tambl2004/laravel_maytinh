@@ -6,7 +6,7 @@
 <div class="container my-5">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb bg-light p-3 rounded">
+        <ol class="breadcrumb bg-white p-0">
             <li class="breadcrumb-item">
                 <a href="{{ route('home') }}" class="text-decoration-none">
                     <i class="fas fa-home me-1"></i>Trang chủ
@@ -20,7 +20,7 @@
                     <a href="#" class="text-decoration-none">{{ $product->category->name }}</a>
                 </li>
             @endif
-            <li class="breadcrumb-item active" aria-current="page">{{ Str::limit($product->name, 50) }}</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ Str::limit($product->name, 60) }}</li>
         </ol>
     </nav>
 
@@ -29,22 +29,36 @@
         <!-- Product Images -->
         <div class="col-lg-6 mb-4">
             <div class="product-image-gallery">
-                <div class="main-image-container">
-                    <img src="{{ $product->image }}" 
-                         class="img-fluid rounded-3 shadow-lg main-product-image" 
-                         alt="{{ $product->name }}"
-                         id="mainProductImage">
-                    <div class="image-zoom-overlay">
-                        <i class="fas fa-search-plus"></i>
+                <div class="d-lg-flex gallery-vertical">
+                    <div class="thumbs d-none d-lg-flex flex-column me-3">
+                        <button type="button" class="thumb-item active">
+                            <img src="{{ $product->image }}" alt="{{ $product->name }}">
+                        </button>
                     </div>
-                </div>
-                <!-- Thumbnail images (if multiple images available) -->
-                <div class="thumbnail-images mt-3">
-                    <div class="row g-2">
-                        <div class="col-3">
-                            <img src="{{ $product->image }}" class="img-thumbnail thumbnail-img active" alt="{{ $product->name }}">
+                    <div class="flex-fill">
+                        <div class="main-image-container shadow-sm position-relative">
+                            @php $runningPromo = \Illuminate\Support\Facades\Schema::hasTable('promotions') ? $product->promotions->firstWhere(fn($p) => $p->isRunning()) : null; @endphp
+                            @if($runningPromo)
+                                <div class="promo-badge">{{ $runningPromo->type==='percent' ? (int)$runningPromo->value.'%' : (number_format($runningPromo->value,0,',','.').'₫') }} OFF</div>
+                            @endif
+                            <button class="btn-wishlist wishlist-toggle" data-id="{{ $product->id }}" aria-label="Thêm yêu thích">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                            <img src="{{ $product->image }}" 
+                                 class="img-fluid rounded-3 main-product-image" 
+                                 alt="{{ $product->name }}"
+                                 id="mainProductImage">
+                            <div class="image-zoom-overlay" aria-hidden="true">
+                                <i class="fas fa-search-plus"></i>
+                            </div>
                         </div>
-                        <!-- Add more thumbnails here when multiple images are available -->
+                        <div class="thumbnail-images mt-3 d-lg-none">
+                            <div class="row g-2">
+                                <div class="col-3">
+                                    <img src="{{ $product->image }}" class="img-thumbnail rounded-2 thumbnail-img active" alt="{{ $product->name }}">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -52,11 +66,12 @@
 
         <!-- Product Info -->
         <div class="col-lg-6">
-            <div class="product-info">
-                <h1 class="product-title mb-3">{{ $product->name }}</h1>
+            <div class="product-info position-sticky buy-card card border-0 shadow-sm" style="top: 1.25rem;">
+                <div class="card-body">
+                <h1 class="product-title mb-2 h3">{{ $product->name }}</h1>
                 
                 <!-- Product Meta -->
-                <div class="product-meta mb-4">
+                <div class="product-meta mb-3">
                     <div class="d-flex align-items-center flex-wrap gap-3">
                         @if($product->stock > 0)
                             <span class="badge bg-success fs-6 px-3 py-2">
@@ -83,53 +98,37 @@
                 </div>
 
                 <!-- Price Section -->
-                <div class="price-section mb-4">
-                    <div class="current-price">
+                <div class="price-line d-flex align-items-center justify-content-between mb-3">
+                    @php $discountPrice = \Illuminate\Support\Facades\Schema::hasTable('promotions') ? $product->discounted_price : $product->price; @endphp
+                    @if($discountPrice < $product->price)
+                        <span class="h2 text-danger fw-bold mb-0">{{ number_format($discountPrice, 0, ',', '.') }}₫</span>
+                        <small class="text-muted text-decoration-line-through">{{ number_format($product->price, 0, ',', '.') }}₫</small>
+                    @else
                         <span class="h2 text-primary fw-bold mb-0">{{ number_format($product->price, 0, ',', '.') }}₫</span>
-                    </div>
-                    <!-- Add discount price here if available -->
-                    <div class="price-savings mt-2">
-                        <small class="text-success">
-                            <i class="fas fa-shipping-fast me-1"></i>
-                            Miễn phí vận chuyển cho đơn hàng trên 500.000₫
-                        </small>
-                    </div>
+                    @endif
+                    <small class="text-success"><i class="fas fa-shipping-fast me-1"></i>Miễn phí > 500.000₫</small>
                 </div>
 
+                <ul class="benefit-list list-unstyled mb-4">
+                    <li><i class="fas fa-rotate-left text-success me-2"></i>Đổi trả 7 ngày</li>
+                    <li><i class="fas fa-shield-halved text-primary me-2"></i>Chính hãng 100%</li>
+                    <li><i class="fas fa-truck-fast text-warning me-2"></i>Giao nhanh 2-5 ngày</li>
+                    <li><i class="fas fa-lock text-dark me-2"></i>Thanh toán an toàn</li>
+                </ul>
+
                 <!-- Product Description -->
-                <div class="product-description mb-4">
+                <div class="product-description mb-3">
                     <h5 class="mb-3">Mô tả sản phẩm</h5>
                     <p class="lead text-muted">{{ $product->description }}</p>
                 </div>
 
                 <!-- Product Features (placeholder for future features) -->
-                <div class="product-features mb-4">
-                    <h6 class="mb-3">Tính năng nổi bật</h6>
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <div class="feature-item d-flex align-items-center">
-                                <i class="fas fa-shield-alt text-primary me-2"></i>
-                                <span class="small">Bảo hành 12 tháng</span>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="feature-item d-flex align-items-center">
-                                <i class="fas fa-water text-info me-2"></i>
-                                <span class="small">Chống nước</span>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="feature-item d-flex align-items-center">
-                                <i class="fas fa-weight-hanging text-success me-2"></i>
-                                <span class="small">Nhẹ và bền bỉ</span>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="feature-item d-flex align-items-center">
-                                <i class="fas fa-laptop text-warning me-2"></i>
-                                <span class="small">Ngăn laptop riêng</span>
-                            </div>
-                        </div>
+                <div class="product-features mb-3">
+                    <div class="d-flex flex-wrap gap-3 small text-muted">
+                        <span><i class="fas fa-shield-alt text-primary me-1"></i>Bảo hành 12 tháng</span>
+                        <span><i class="fas fa-water text-info me-1"></i>Chống nước</span>
+                        <span><i class="fas fa-weight-hanging text-success me-1"></i>Nhẹ và bền</span>
+                        <span><i class="fas fa-laptop text-warning me-1"></i>Ngăn laptop</span>
                     </div>
                 </div>
 
@@ -138,43 +137,30 @@
                     <div class="add-to-cart-section">
                         <form action="{{ route('cart.add', $product) }}" method="POST" class="add-to-cart-form">
                             @csrf
-                            <div class="mb-4">
-                                <label for="quantity" class="form-label fw-semibold mb-3">Số lượng</label>
-                                <div class="quantity-selector d-flex align-items-center justify-content-start mb-4">
-                                    <button type="button" class="btn btn-outline-secondary quantity-btn" id="decreaseQty">
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label fw-semibold">Số lượng</label>
+                                <div class="quantity-selector d-flex align-items-center justify-content-start">
+                                    <button type="button" class="btn btn-outline-secondary quantity-btn" id="decreaseQty" aria-label="Giảm số lượng">
                                         <i class="fas fa-minus"></i>
                                     </button>
-                                    <input type="number" name="quantity" id="quantity" class="form-control quantity-input text-center mx-0" 
-                                           value="1" min="1" max="{{ $product->stock }}">
-                                    <button type="button" class="btn btn-outline-secondary quantity-btn" id="increaseQty">
+                                    <input type="number" name="quantity" id="quantity" class="form-control quantity-input text-center mx-0" value="1" min="1" max="{{ $product->stock }}">
+                                    <button type="button" class="btn btn-outline-secondary quantity-btn" id="increaseQty" aria-label="Tăng số lượng">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="d-flex gap-3 align-items-center">
                                 <button type="submit" class="btn btn-primary btn-lg flex-fill">
-                                    <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                                    <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ
                                 </button>
-                                <button type="button" class="btn btn-outline-danger btn-lg px-4">
+                                <button type="button" class="btn btn-outline-danger btn-lg px-4" aria-label="Thêm vào yêu thích">
                                     <i class="fas fa-heart"></i>
                                 </button>
                             </div>
                         </form>
-                        
-                        <!-- Quick Actions -->
-                        <div class="quick-actions mt-3">
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <button class="btn btn-outline-primary btn-sm w-100">
-                                        <i class="fas fa-share-alt me-1"></i>Chia sẻ
-                                    </button>
-                                </div>
-                                <div class="col-6">
-                                    <button class="btn btn-outline-info btn-sm w-100">
-                                        <i class="fas fa-ruler me-1"></i>Hướng dẫn chọn size
-                                    </button>
-                                </div>
-                            </div>
+                        <div class="quick-actions d-flex gap-2 mt-3">
+                            <button class="btn btn-outline-primary btn-sm" data-action="share"><i class="fas fa-share-alt me-1"></i>Chia sẻ</button>
+                            <button class="btn btn-outline-info btn-sm"><i class="fas fa-ruler me-1"></i>Hướng dẫn chọn size</button>
                         </div>
                     </div>
                 @else
@@ -187,13 +173,14 @@
                         </button>
                     </div>
                 @endif
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Product Tabs -->
     <div class="product-tabs-section mb-5">
-        <ul class="nav nav-tabs nav-justified" id="productTabs" role="tablist">
+        <ul class="nav nav-underline product-tabs" id="productTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">
                     <i class="fas fa-info-circle me-2"></i>Mô tả chi tiết
@@ -206,7 +193,7 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
-                    <i class="fas fa-star me-2"></i>Đánh giá (0)
+                    <i class="fas fa-star me-2"></i>Đánh giá ({{ $product->review_count }})
                 </button>
             </li>
         </ul>
@@ -227,11 +214,178 @@
                 </table>
             </div>
             <div class="tab-pane fade" id="reviews" role="tabpanel">
-                <h5>Đánh giá của khách hàng</h5>
-                <div class="text-center py-4">
-                    <i class="fas fa-star-half-alt fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
-                    <button class="btn btn-primary">Viết đánh giá đầu tiên</button>
+                <div class="reviews-section">
+                    <!-- Review Summary -->
+                    <div class="review-summary mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="rating-overview">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="average-rating me-3">
+                                            <span class="h2 mb-0">{{ number_format($product->average_rating, 1) }}</span>
+                                            <div class="stars">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="fas fa-star {{ $i <= round($product->average_rating) ? 'text-warning' : 'text-muted' }}"></i>
+                                                @endfor
+                                            </div>
+                                            <small class="text-muted">({{ $product->review_count }} đánh giá)</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="rating-distribution">
+                                    @php $distribution = $product->rating_distribution; @endphp
+                                    @for($i = 5; $i >= 1; $i--)
+                                        <div class="d-flex align-items-center mb-1">
+                                            <span class="me-2">{{ $i }} <i class="fas fa-star text-warning small"></i></span>
+                                            <div class="progress flex-fill me-2" style="height: 6px;">
+                                                <div class="progress-bar bg-warning" style="width: {{ $product->review_count > 0 ? ($distribution[$i] / $product->review_count * 100) : 0 }}%"></div>
+                                            </div>
+                                            <small class="text-muted">{{ $distribution[$i] }}</small>
+                                        </div>
+                                    @endfor
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review Form -->
+                    @auth
+                        @if(!$userReview)
+                            <div class="review-form-section mb-4">
+                                <h6 class="mb-3">Đánh giá sản phẩm này</h6>
+                                <form action="{{ route('reviews.store', $product) }}" method="POST" class="review-form">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Đánh giá của bạn <span class="text-danger">*</span></label>
+                                        <div class="rating-input d-flex align-items-center p-2 border rounded" style="background-color: #f8f9fa;">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <i class="far fa-star rating-star text-muted" data-rating="{{ $i }}" title="{{ $i }} sao"></i>
+                                            @endfor
+                                            <input type="hidden" name="rating" id="rating" required>
+                                            <span class="ms-3 rating-text text-muted small fst-italic">Nhấp vào sao để đánh giá</span>
+                                        </div>
+                                        @error('rating')
+                                            <div class="text-danger small mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="comment" class="form-label">Nhận xét (tùy chọn)</label>
+                                        <textarea name="comment" id="comment" class="form-control" rows="4" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm...">{{ old('comment') }}</textarea>
+                                        @error('comment')
+                                            <div class="text-danger small mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>Gửi đánh giá
+                                    </button>
+                                </form>
+                            </div>
+                        @else
+                            <div class="user-review-section mb-4">
+                                <div class="alert alert-info">
+                                    <h6 class="mb-2">Đánh giá của bạn</h6>
+                                    <div class="d-flex align-items-center mb-2">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <i class="fas fa-star {{ $i <= $userReview->rating ? 'text-warning' : 'text-muted' }}"></i>
+                                        @endfor
+                                        <span class="ms-2">{{ $userReview->rating }}/5</span>
+                                    </div>
+                                    @if($userReview->comment)
+                                        <p class="mb-2">{{ $userReview->comment }}</p>
+                                    @endif
+                                    <small class="text-muted">Đánh giá vào {{ $userReview->created_at->format('d/m/Y H:i') }}</small>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-primary edit-review-btn">Chỉnh sửa</button>
+                                        <form action="{{ route('reviews.destroy', $userReview) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa đánh giá này?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <!-- Edit Form (hidden by default) -->
+                                <div class="edit-review-form" style="display: none;">
+                                    <form action="{{ route('reviews.update', $userReview) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <div class="mb-3">
+                                            <label class="form-label">Đánh giá của bạn</label>
+                                            <div class="rating-input d-flex align-items-center">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="far fa-star rating-star-edit {{ $i <= $userReview->rating ? 'fas text-warning' : '' }}" data-rating="{{ $i }}" style="cursor: pointer; font-size: 1.5rem; margin-right: 0.25rem;"></i>
+                                                @endfor
+                                                <input type="hidden" name="rating" id="edit-rating" value="{{ $userReview->rating }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="edit-comment" class="form-label">Nhận xét</label>
+                                            <textarea name="comment" id="edit-comment" class="form-control" rows="4">{{ $userReview->comment }}</textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary me-2">Cập nhật</button>
+                                        <button type="button" class="btn btn-secondary cancel-edit-btn">Hủy</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endif
+                    @else
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Bạn cần đăng nhập để đánh giá sản phẩm.</strong>
+                            <a href="{{ route('login') }}" class="btn btn-sm btn-primary ms-2">Đăng nhập</a>
+                        </div>
+                    @endauth
+
+                    <!-- Reviews List -->
+                    <div class="reviews-list">
+                        <h6 class="mb-3">Đánh giá từ khách hàng</h6>
+                        @forelse($reviews as $review)
+                            <div class="review-item border-bottom pb-3 mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="reviewer-avatar me-3">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            {{ strtoupper(substr($review->user->name, 0, 1)) }}
+                                        </div>
+                                    </div>
+                                    <div class="review-content flex-fill">
+                                        <div class="d-flex align-items-center justify-content-between mb-1">
+                                            <h6 class="mb-0">{{ $review->user->name }}</h6>
+                                            <small class="text-muted">{{ $review->created_at->diffForHumans() }}</small>
+                                        </div>
+                                        <div class="rating mb-2">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <i class="fas fa-star {{ $i <= $review->rating ? 'text-warning' : 'text-muted' }} small"></i>
+                                            @endfor
+                                            <span class="ms-1 small">{{ $review->rating }}/5</span>
+                                        </div>
+                                        @if($review->comment)
+                                            <p class="mb-0">{{ $review->comment }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="text-center py-4">
+                                <i class="fas fa-star-half-alt fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
+                                @auth
+                                    @if(!$userReview)
+                                        <button class="btn btn-primary" id="writeFirstReview">
+                                            Viết đánh giá đầu tiên
+                                        </button>
+                                    @endif
+                                @endauth
+                            </div>
+                        @endforelse
+                        
+                        @if($reviews->hasPages())
+                            <div class="d-flex justify-content-center mt-4">
+                                {{ $reviews->links() }}
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -258,6 +412,9 @@
 
 @section('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing product page scripts...');
+    
     // Quantity selector functionality
     const quantityInput = document.getElementById('quantity');
     const decreaseBtn = document.getElementById('decreaseQty');
@@ -367,6 +524,182 @@
         });
     });
     
+    // Review Rating System
+    console.log('Initializing star rating system...');
+    const ratingStars = document.querySelectorAll('.rating-star');
+    const ratingInput = document.getElementById('rating');
+    const ratingText = document.querySelector('.rating-text');
+    const reviewForm = document.querySelector('.review-form');
+    
+    console.log('Found elements:');
+    console.log('- Rating stars:', ratingStars.length);
+    console.log('- Rating input:', ratingInput ? 'found' : 'NOT FOUND');
+    console.log('- Rating text:', ratingText ? 'found' : 'NOT FOUND');
+    console.log('- Review form:', reviewForm ? 'found' : 'NOT FOUND');
+    
+    if (ratingStars.length === 0) {
+        console.error('No rating stars found! Check if user is logged in and on reviews tab.');
+    }
+    
+    const ratingTexts = {
+        1: 'Rất tệ',
+        2: 'Tệ', 
+        3: 'Bình thường',
+        4: 'Tốt',
+        5: 'Rất tốt'
+    };
+    
+    ratingStars.forEach((star, index) => {
+        console.log(`Setting up star ${index + 1}:`, star);
+        
+        star.addEventListener('click', function() {
+            console.log('Star clicked! Rating:', this.dataset.rating);
+            const rating = parseInt(this.dataset.rating);
+            
+            if (ratingInput) {
+                ratingInput.value = rating;
+                console.log('Rating input value set to:', rating);
+            } else {
+                console.error('Rating input not found!');
+            }
+            
+            // Update visual stars
+            ratingStars.forEach((s, i) => {
+                s.classList.remove('fas', 'far', 'text-warning', 'text-muted');
+                if (i < rating) {
+                    s.classList.add('fas', 'text-warning');
+                } else {
+                    s.classList.add('far', 'text-muted');
+                }
+            });
+            
+            // Update rating text
+            if (ratingText) {
+                ratingText.textContent = ratingTexts[rating];
+                ratingText.classList.remove('text-muted');
+                ratingText.classList.add('text-primary', 'fw-bold');
+            }
+            
+            console.log('Star rating updated successfully!');
+        });
+        
+        // Hover effect
+        star.addEventListener('mouseenter', function() {
+            const rating = parseInt(this.dataset.rating);
+            ratingStars.forEach((s, i) => {
+                if (i < rating) {
+                    s.classList.add('text-warning');
+                    s.classList.remove('text-muted');
+                } else {
+                    s.classList.add('text-muted');
+                    s.classList.remove('text-warning');
+                }
+            });
+        });
+        
+        // Make sure stars are visually clickable
+        star.style.cursor = 'pointer';
+        star.style.fontSize = '1.5rem';
+        star.style.marginRight = '0.25rem';
+        star.style.transition = 'all 0.2s ease';
+    });
+    
+    // Reset stars on mouse leave
+    const ratingInputContainer = document.querySelector('.rating-input');
+    if (ratingInputContainer) {
+        ratingInputContainer.addEventListener('mouseleave', function() {
+            const currentRating = parseInt(ratingInput ? ratingInput.value : 0) || 0;
+            ratingStars.forEach((s, index) => {
+                s.classList.remove('fas', 'far', 'text-warning', 'text-muted');
+                if (index < currentRating) {
+                    s.classList.add('fas', 'text-warning');
+                } else {
+                    s.classList.add('far', 'text-muted');
+                }
+            });
+        });
+    }
+    
+    // Form validation for review submission
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', function(e) {
+            const ratingValue = ratingInput ? ratingInput.value : '';
+            console.log('Form submitted with rating:', ratingValue);
+            
+            if (!ratingValue || ratingValue === '') {
+                e.preventDefault();
+                
+                // Show error message
+                const existingError = document.querySelector('.rating-error');
+                if (existingError) {
+                    existingError.remove();
+                }
+                
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'text-danger small mt-1 rating-error';
+                errorDiv.textContent = 'Vui lòng chọn số sao đánh giá';
+                
+                const ratingContainer = document.querySelector('.rating-input').parentElement;
+                ratingContainer.appendChild(errorDiv);
+                
+                // Highlight the rating input
+                ratingInputContainer.style.border = '2px solid #dc3545';
+                ratingInputContainer.style.borderRadius = '4px';
+                ratingInputContainer.style.padding = '8px';
+                
+                // Scroll to rating section
+                ratingContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                console.log('Form submission prevented - no rating selected');
+                return false;
+            }
+            
+            console.log('Form validation passed, submitting...');
+        });
+    }
+    
+    // Edit Review Rating System
+    const editRatingStars = document.querySelectorAll('.rating-star-edit');
+    const editRatingInput = document.getElementById('edit-rating');
+    
+    editRatingStars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.dataset.rating);
+            editRatingInput.value = rating;
+            
+            // Update visual stars
+            editRatingStars.forEach((s, index) => {
+                if (index < rating) {
+                    s.classList.remove('far');
+                    s.classList.add('fas', 'text-warning');
+                } else {
+                    s.classList.remove('fas', 'text-warning');
+                    s.classList.add('far');
+                }
+            });
+        });
+    });
+    
+    // Edit Review Toggle
+    const editReviewBtn = document.querySelector('.edit-review-btn');
+    const cancelEditBtn = document.querySelector('.cancel-edit-btn');
+    const userReviewSection = document.querySelector('.user-review-section .alert');
+    const editReviewForm = document.querySelector('.edit-review-form');
+    
+    if (editReviewBtn) {
+        editReviewBtn.addEventListener('click', function() {
+            userReviewSection.style.display = 'none';
+            editReviewForm.style.display = 'block';
+        });
+    }
+    
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', function() {
+            userReviewSection.style.display = 'block';
+            editReviewForm.style.display = 'none';
+        });
+    }
+    
     // Share functionality
     document.querySelectorAll('[data-action="share"]').forEach(shareBtn => {
         shareBtn.addEventListener('click', function() {
@@ -396,4 +729,31 @@
             }
         });
     });
+    
+    // Write first review button functionality
+    const writeFirstReviewBtn = document.getElementById('writeFirstReview');
+    if (writeFirstReviewBtn) {
+        writeFirstReviewBtn.addEventListener('click', function() {
+            // Switch to reviews tab
+            const reviewsTab = document.getElementById('reviews-tab');
+            if (reviewsTab) {
+                reviewsTab.click();
+                
+                // Scroll to review form after a short delay
+                setTimeout(() => {
+                    const reviewForm = document.querySelector('.review-form');
+                    if (reviewForm) {
+                        reviewForm.scrollIntoView({ behavior: 'smooth' });
+                        
+                        // Automatically select 5 stars
+                        const fiveStarBtn = document.querySelector('.rating-star[data-rating="5"]');
+                        if (fiveStarBtn) {
+                            fiveStarBtn.click();
+                        }
+                    }
+                }, 300);
+            }
+        });
+    }
+});
 </script>

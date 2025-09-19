@@ -130,6 +130,7 @@
                     </div>
                     
                     <div class="payment-methods">
+                        <!-- COD Payment Option -->
                         <div class="payment-option mb-3">
                             <div class="card border-2">
                                 <div class="card-body p-4">
@@ -145,6 +146,33 @@
                                                 </div>
                                                 <div class="payment-badge">
                                                     <span class="badge bg-success">Miễn phí</span>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- MoMo Payment Option -->
+                        <div class="payment-option mb-3">
+                            <div class="card border-2">
+                                <div class="card-body p-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="momo" value="momo">
+                                        <label class="form-check-label w-100 cursor-pointer" for="momo">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <div class="payment-info">
+                                                    <h5 class="mb-1">
+                                                        <i class="fas fa-mobile-alt me-2 text-danger"></i>Thanh toán qua MoMo
+                                                    </h5>
+                                                    <p class="text-muted mb-0 small">Thanh toán nhanh chóng và an toàn qua ví điện tử MoMo</p>
+                                                    <p class="text-warning mb-0 small">
+                                                        <i class="fas fa-info-circle me-1"></i>Từ {{ number_format(config('services.momo.min_amount', 10000), 0, ',', '.') }}₫ đến {{ number_format(config('services.momo.max_amount', 50000000), 0, ',', '.') }}₫
+                                                    </p>
+                                                </div>
+                                                <div class="payment-badge">
+                                                    <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-MoMo-Square.png" alt="MoMo" style="width: 32px; height: 32px;">
                                                 </div>
                                             </div>
                                         </label>
@@ -303,16 +331,216 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Form submission with loading state
+    // Check MoMo amount requirements
+    const totalAmount = {{ $total }};
+    const momoMinAmount = {{ config('services.momo.min_amount', 10000) }};
+    const momoMaxAmount = {{ config('services.momo.max_amount', 50000000) }};
+    const momoRadio = document.getElementById('momo');
+    const momoCard = momoRadio.closest('.payment-option');
+    
+    if (totalAmount < momoMinAmount || totalAmount > momoMaxAmount) {
+        // Disable MoMo option for amounts outside range
+        momoRadio.disabled = true;
+        momoCard.style.opacity = '0.6';
+        momoCard.style.pointerEvents = 'none';
+        
+        // Add warning text
+        const warningText = momoCard.querySelector('.payment-info');
+        if (warningText && !warningText.querySelector('.amount-warning')) {
+            const warning = document.createElement('p');
+            warning.className = 'amount-warning text-danger mb-0 small';
+            if (totalAmount < momoMinAmount) {
+                warning.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Đơn hàng dưới mức tối thiểu';
+            } else {
+                warning.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Đơn hàng vượt mức tối đa';
+            }
+            warningText.appendChild(warning);
+        }
+    }
+    
+    // Form submission with loading state and MoMo payment handling
     const submitBtn = document.querySelector('.order-submit-btn');
     const checkoutForm = document.querySelector('.checkout-form');
     
     if (checkoutForm && submitBtn) {
-        checkoutForm.addEventListener('submit', function() {
+        checkoutForm.addEventListener('submit', function(e) {
+            const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+            
+            if (paymentMethod === 'momo') {
+                e.preventDefault();
+                handleMoMoPayment();
+            } else {
+                // Regular COD submission
+                submitBtn.classList.add('loading');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+            }
+        });
+    }
+    
+    // Handle MoMo payment process
+    async function handleMoMoPayment() {
+        try {
+            // Show loading state
             submitBtn.classList.add('loading');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
-        });
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang tạo đơn hàng...';
+            
+            // First create the order
+            const formData = new FormData(checkoutForm);
+            
+            const orderResponse = await fetch('{{ route("checkout.store") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                }
+            });
+            
+            // Check if response is ok
+            if (!orderResponse.ok) {
+                const errorText = await orderResponse.text();
+                console.error('Order creation failed:', errorText);
+                throw new Error(`Không thể tạo đơn hàng (${orderResponse.status})`);
+            }
+            
+            // Parse JSON response
+            let orderResult;
+            try {
+                orderResult = await orderResponse.json();
+            } catch (parseError) {
+                console.error('Failed to parse order response as JSON:', parseError);
+                const responseText = await orderResponse.text();
+                console.error('Response text:', responseText);
+                throw new Error('Phản hồi từ server không hợp lệ');
+            }
+            
+            if (!orderResult.success) {
+                throw new Error(orderResult.message || 'Có lỗi xảy ra khi tạo đơn hàng');
+            }
+            
+            // Update button text
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang chuyển đến MoMo...';
+            
+            // Create MoMo payment
+            const momoResponse = await fetch('{{ route("payment.momo.create") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    order_id: orderResult.order_id,
+                    return_type: 'json'
+                })
+            });
+            
+            if (!momoResponse.ok) {
+                const errorText = await momoResponse.text();
+                console.error('MoMo payment creation failed:', errorText);
+                throw new Error(`Không thể kết nối với MoMo (${momoResponse.status})`);
+            }
+            
+            // Parse MoMo response
+            let momoResult;
+            try {
+                momoResult = await momoResponse.json();
+            } catch (parseError) {
+                console.error('Failed to parse MoMo response as JSON:', parseError);
+                const responseText = await momoResponse.text();
+                console.error('MoMo Response text:', responseText);
+                throw new Error('Phản hồi từ MoMo không hợp lệ');
+            }
+            
+            if (momoResult.success && momoResult.payUrl) {
+                // Mở trang MoMo ở tab mới để tránh chặn UI và bắt đầu polling trạng thái
+                const paymentWindow = window.open(momoResult.payUrl, '_blank');
+
+                // Hiển thị trạng thái chờ trên nút
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang chờ bạn thanh toán...';
+
+                // Polling trạng thái đơn hàng mỗi 3s
+                const orderId = orderResult.order_id;
+                let elapsed = 0; // theo dõi thời gian chờ để timeout hợp lý
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const statusResp = await fetch('{{ route("payment.momo.status") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({ order_id: orderId })
+                        });
+
+                        if (statusResp.ok) {
+                            const statusJson = await statusResp.json();
+                            const paymentStatus = statusJson?.data?.payment_status;
+                            if (paymentStatus === 'paid') {
+                                clearInterval(pollInterval);
+                                // Đóng tab MoMo nếu còn mở
+                                try { if (paymentWindow && !paymentWindow.closed) paymentWindow.close(); } catch (_) {}
+                                window.location.href = '{{ url('/my-orders') }}' + '/' + statusJson.data.order_id;
+                                return;
+                            }
+                            if (paymentStatus === 'failed' || statusJson?.success === false) {
+                                clearInterval(pollInterval);
+                                alert('Thanh toán không thành công. Vui lòng thử lại hoặc chọn phương thức khác.');
+                                submitBtn.classList.remove('loading');
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Hoàn tất đặt hàng';
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        // Bỏ qua lỗi tạm thời trong quá trình polling
+                        console.warn('Polling error', e);
+                    }
+
+                    // Timeout sau 10 phút để tránh treo vô hạn
+                    elapsed += 3000;
+                    if (elapsed >= 10 * 60 * 1000) {
+                        clearInterval(pollInterval);
+                        alert('Chưa nhận được kết quả thanh toán. Bạn có thể kiểm tra lại trong lịch sử đơn hàng.');
+                        submitBtn.classList.remove('loading');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Hoàn tất đặt hàng';
+                    }
+                }, 3000);
+            } else {
+                // Check if it's a minimum amount error
+                if (momoResult.message && momoResult.message.includes('nhỏ hơn mức tối thiểu')) {
+                    // Show user-friendly error and suggest COD
+                    alert('Số tiền đơn hàng của bạn không phù hợp để thanh toán qua MoMo (từ {{ number_format(config("services.momo.min_amount", 10000), 0, ",", ".") }}₫ đến {{ number_format(config("services.momo.max_amount", 50000000), 0, ",", ".") }}₫). Vui lòng chọn thanh toán khi nhận hàng (COD).');
+                    
+                    // Auto-select COD payment method
+                    const codRadio = document.getElementById('cod');
+                    if (codRadio) {
+                        codRadio.checked = true;
+                    }
+                    
+                    // Reset button state
+                    submitBtn.classList.remove('loading');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Hoàn tất đặt hàng';
+                    return;
+                }
+                
+                throw new Error(momoResult.message || 'Không thể tạo liên kết thanh toán MoMo');
+            }
+            
+        } catch (error) {
+            console.error('MoMo Payment Error:', error);
+            alert('Lỗi thanh toán MoMo: ' + error.message);
+            
+            // Reset button state
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Hoàn tất đặt hàng';
+        }
     }
 });
 </script>

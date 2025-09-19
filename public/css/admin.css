@@ -1,0 +1,109 @@
+/* Admin UI styles - sạch, hiện đại, không dùng màu tím */
+/* Màu chủ đạo: xanh Bootstrap, xám trung tính, accent cam cho cảnh báo */
+
+:root {
+  --admin-bg: #f6f8fb;
+  --admin-surface: #ffffff;
+  --admin-border: #e9ecef;
+  --admin-muted: #6c757d;
+  --admin-text: #212529;
+  --admin-primary: #0d6efd; /* Bootstrap primary - xanh */
+  --admin-success: #198754;
+  --admin-danger: #dc3545;
+  --admin-warning: #f59e0b; /* cam nhạt cho badge, cảnh báo */
+  --admin-link: #0d6efd;
+  --admin-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Nền & bố cục */
+body { background: var(--admin-bg); }
+.navbar { backdrop-filter: saturate(120%) blur(2px); }
+.admin-sidebar {
+  background: var(--admin-surface);
+  border-right: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow);
+}
+.admin-main { min-height: calc(100vh - 56px); }
+.page-section {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: .75rem;
+  padding: 1rem;
+  box-shadow: var(--admin-shadow);
+}
+.page-heading { font-weight: 600; }
+.page-toolbar .btn { border-radius: .4rem; }
+
+/* Sidebar nav */
+.list-group.list-group-flush .list-group-item {
+  border: 0;
+  padding: .65rem .9rem;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  border-left: 3px solid transparent;
+  transition: all .15s ease;
+}
+.list-group-item i { width: 18px; text-align: center; margin-right: .5rem; color: var(--admin-muted); }
+.list-group-item:hover { background: #f8f9fa; color: var(--admin-text); border-left-color: #cfe2ff; }
+.list-group-item.active { background: #e7f1ff; color: var(--admin-primary); font-weight: 600; border-left-color: var(--admin-primary); }
+.list-group-item.active i { color: var(--admin-primary); }
+
+/* Cards */
+.card { border: 1px solid var(--admin-border); box-shadow: var(--admin-shadow); }
+.card-header { background: #f8f9fa; font-weight: 600; }
+.card-footer { background: #f8f9fa; }
+
+/* Bảng dữ liệu */
+.table { margin-bottom: 0; }
+.table thead th { background: #f8f9fa; color: #495057; font-weight: 600; border-bottom: 1px solid var(--admin-border); }
+.table tbody tr:hover { background: #fafbfc; }
+.table > :not(caption) > * > * { padding: .75rem .9rem; }
+.table .badge { font-weight: 600; }
+
+/* Form controls */
+.form-control, .form-select { border-color: var(--admin-border); }
+.form-control:focus, .form-select:focus { box-shadow: 0 0 0 .2rem rgba(13,110,253,.15); border-color: #b6d4fe; }
+.form-label { font-weight: 600; color: #495057; }
+.input-group-text { background: #f8f9fa; border-color: var(--admin-border); }
+
+/* Buttons */
+.btn { border-radius: .5rem; }
+.btn-primary { box-shadow: 0 4px 12px rgba(13,110,253,.2); }
+.btn-outline-secondary:hover { background: #e9ecef; }
+.btn-light { border: 1px solid var(--admin-border); }
+
+/* Breadcrumb */
+.breadcrumb { --bs-breadcrumb-divider: '›'; margin-bottom: .5rem; }
+.breadcrumb .breadcrumb-item + .breadcrumb-item::before { color: #adb5bd; }
+.breadcrumb .breadcrumb-item a { color: var(--admin-link); text-decoration: none; }
+
+/* Pagination */
+.pagination .page-link { border-color: var(--admin-border); color: #495057; }
+.pagination .page-link:hover { background: #f8f9fa; }
+.pagination .active .page-link { background: var(--admin-primary); border-color: var(--admin-primary); }
+
+/* Badge trạng thái */
+.badge-soft-success { background: #e8f6ef; color: var(--admin-success); }
+.badge-soft-danger { background: #fdecef; color: var(--admin-danger); }
+.badge-soft-warning { background: #fff6e6; color: #b45309; }
+
+/* Bảng điều khiển - tiles */
+.stat-tile { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: .75rem; padding: 1rem; box-shadow: var(--admin-shadow); }
+.stat-value { font-size: 1.5rem; font-weight: 700; color: var(--admin-text); }
+.stat-label { color: #6b7280; }
+
+/* Utilities */
+.text-muted-2 { color: #6b7280 !important; }
+.border-soft { border-color: var(--admin-border) !important; }
+.bg-soft { background: #f8f9fa !important; }
+
+/* Tooltip tinh chỉnh (nếu dùng) */
+.tooltip-inner { border-radius: .375rem; padding: .5rem .75rem; }
+
+/* Responsive nhỏ gọn cho sidebar */
+@media (min-width: 992px) {
+  .admin-sidebar { position: sticky; top: 56px; height: calc(100vh - 56px); }
+}
+
+

@@ -44,6 +44,17 @@
                             <i class="fas fa-envelope me-1"></i>Liên hệ
                         </a>
                     </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link position-relative" href="{{ route('wishlist.index') }}" title="Yêu thích">
+                            <i class="fas fa-heart me-1"></i>
+                            @if(count((array) session('wishlist')) > 0)
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ count((array) session('wishlist')) }}
+                                    <span class="visually-hidden">sản phẩm yêu thích</span>
+                                </span>
+                            @endif
+                        </a>
+                    </li>
                     <li class="nav-item me-3">
                         <a class="nav-link position-relative" href="{{ route('cart.index') }}">
                             <i class="fas fa-shopping-cart me-1"></i>
@@ -55,6 +66,7 @@
                             @endif
                         </a>
                     </li>
+                   
                     @guest
                         <li class="nav-item me-2">
                             <a class="nav-link btn btn-outline-light btn-sm px-3" href="{{ route('login') }}">
@@ -116,7 +128,7 @@
                         <h5 class="fw-bold mb-3">
                             <i class="fas fa-backpack me-2 text-warning"></i>Shop Laptop
                         </h5>
-                        <p class="text-muted mb-3">Đồng hành cùng mọi hành trình của bạn với những chiếc laptop chất lượng cao, phong cách và tiện dụng.</p>
+                        <p class="text-white-50 mb-3">Đồng hành cùng mọi hành trình của bạn với những chiếc laptop chất lượng cao, phong cách và tiện dụng.</p>
                         <div class="social-links">
                             <a href="#" class="text-white me-3"><i class="fab fa-facebook fa-lg"></i></a>
                             <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>

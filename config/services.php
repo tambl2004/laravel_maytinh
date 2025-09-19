@@ -35,4 +35,22 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT'),
+    ],
+
+    'momo' => [
+        'endpoint' => env('MOMO_ENDPOINT', 'https://test-payment.momo.vn/v2/gateway/api/create'),
+        'partner_code' => env('MOMO_PARTNER_CODE'),
+        'access_key' => env('MOMO_ACCESS_KEY'),
+        'secret_key' => env('MOMO_SECRET_KEY'),
+        'return_url' => env('MOMO_RETURN_URL'),
+        'notify_url' => env('MOMO_NOTIFY_URL'),
+        'ssl_verify' => env('MOMO_SSL_VERIFY', true),
+        'min_amount' => env('MOMO_MIN_AMOUNT', 10000), // Minimum amount in VND (actual MoMo requirement)
+        'max_amount' => env('MOMO_MAX_AMOUNT', 50000000), // Maximum amount in VND
+    ],
+
 ];

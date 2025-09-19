@@ -11,7 +11,8 @@ class ProductController extends Controller
     // Tạo một hàm để hiển thị danh sách sản phẩm
     public function index(Request $request)
     {
-        $query = Product::query();
+        $query = Product::withCount(['approvedReviews as review_count'])
+                        ->withAvg('approvedReviews as average_rating', 'rating');
         
         // Search functionality
         if ($request->filled('search')) {
@@ -38,6 +39,9 @@ class ProductController extends Controller
             case 'name_desc':
                 $query->orderBy('name', 'desc');
                 break;
+            case 'rating_desc':
+                $query->orderBy('average_rating', 'desc');
+                break;
             default:
                 $query->orderBy('created_at', 'desc');
         }
@@ -62,7 +66,9 @@ class ProductController extends Controller
      
          return view('customer.products.show', [
              'product' => $product,
-             'relatedProducts' => $relatedProducts
+             'relatedProducts' => $relatedProducts,
+             'reviews' => $product->approvedReviews()->with('user')->latest()->paginate(10),
+             'userReview' => auth()->check() ? $product->reviews()->where('user_id', auth()->id())->first() : null
          ]);
      }
 }

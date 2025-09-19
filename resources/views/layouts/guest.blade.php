@@ -66,6 +66,30 @@
                 transform: translateY(-2px);
                 box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
             }
+            
+            /* Divider styles */
+            .divider-text {
+                position: relative;
+                text-align: center;
+                margin: 1rem 0;
+            }
+            
+            .divider-text::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: #e5e7eb;
+                z-index: 1;
+            }
+            
+            .divider-text span {
+                position: relative;
+                z-index: 2;
+                padding: 0 1rem;
+            }
         </style>
     </head>
     <body class="font-sans text-gray-900 antialiased">

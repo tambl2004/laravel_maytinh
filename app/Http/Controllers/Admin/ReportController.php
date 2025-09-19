@@ -28,7 +28,7 @@ class ReportController extends Controller
             ->sum('total_amount');
 
         $totalOrders = Order::whereBetween('created_at', [$startDate, $endDate])->count();
-        $totalCustomers = User::where('role', 'customer')->count();
+        $totalCustomers = User::where('role', 'user')->count(); // Fix: changed from 'customer' to 'user'
         $totalProducts = Product::count();
 
         // Thống kê theo ngày (cho biểu đồ)

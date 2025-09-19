@@ -9,7 +9,9 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
 
 // Controllers cho Xác thực
 use App\Http\Controllers\Auth\AuthController;
@@ -20,7 +22,13 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\ReportController; 
+use App\Http\Controllers\Admin\PromotionController as AdminPromotionController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\FaqController as AdminFaqController;
+
+// Payment Controllers
+use App\Http\Controllers\Payment\MoMoController; 
 
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\Admin\NewsController as AdminNewsController;
@@ -36,6 +44,13 @@ use App\Http\Controllers\AddressController;
 */
 // Trang chủ mới với sản phẩm nổi bật
 Route::get('/', [HomeController::class, 'index'])->name('home');
+// Wishlist - dùng session, không yêu cầu đăng nhập
+Route::prefix('wishlist')->name('wishlist.')->group(function () {
+    Route::get('/', [WishlistController::class, 'index'])->name('index');
+    Route::post('/add/{product}', [WishlistController::class, 'add'])->name('add');
+    Route::delete('/remove/{product}', [WishlistController::class, 'remove'])->name('remove');
+    Route::delete('/clear', [WishlistController::class, 'clear'])->name('clear');
+});
 
 // Dashboard cho người dùng thường
 Route::get('/dashboard', function () {
@@ -107,7 +122,69 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/my-orders', [OrderController::class, 'index'])->name('orders.my');
     Route::get('/my-orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    
+    // Reviews - Chức năng đánh giá sản phẩm
+    Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    
+    // MoMo Payment Routes
+    Route::prefix('payment/momo')->name('payment.momo.')->group(function () {
+        Route::post('/create', [MoMoController::class, 'createPayment'])->name('create');
+        Route::get('/return', [MoMoController::class, 'handleReturn'])->name('return');
+        Route::post('/check-status', [MoMoController::class, 'checkStatus'])->name('status');
+    });
 });
+
+// MoMo IPN callback (không cần auth)
+Route::post('/payment/momo/notify', [MoMoController::class, 'handleNotify'])->name('payment.momo.notify');
+
+// Test route for MoMo configuration (remove in production)
+Route::get('/test-momo-config', function() {
+    return response()->json([
+        'momo_config' => [
+            'endpoint' => config('services.momo.endpoint'),
+            'partner_code' => config('services.momo.partner_code') ? 'SET' : 'NOT SET',
+            'access_key' => config('services.momo.access_key') ? 'SET' : 'NOT SET',
+            'secret_key' => config('services.momo.secret_key') ? 'SET' : 'NOT SET',
+            'return_url' => config('services.momo.return_url'),
+            'notify_url' => config('services.momo.notify_url'),
+            'ssl_verify' => config('services.momo.ssl_verify')
+        ],
+    ]);
+})->middleware('auth');
+
+// Test route for MoMo service functionality
+Route::get('/test-momo-service', function() {
+    try {
+        $service = app(\App\Services\MoMoPaymentService::class);
+        
+        // Test basic configuration
+        $testData = [
+            'orderId' => 'TEST_' . time(),
+            'requestId' => 'REQ_' . time(),
+            'amount' => 10000,
+            'orderInfo' => 'Test payment'
+        ];
+        
+        // Actually test the service call
+        $result = $service->createPayment($testData);
+        
+        return response()->json([
+            'service_status' => 'tested',
+            'test_data' => $testData,
+            'result' => $result,
+            'message' => 'MoMo service test completed'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+})->middleware('auth');
 
 
 /*
@@ -127,6 +204,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('orders', AdminOrderController::class)->only(['index', 'show', 'update']);
     Route::resource('users', AdminUserController::class);
     Route::resource('news', AdminNewsController::class);
+    // Promotions management
+    Route::resource('promotions', AdminPromotionController::class)->except(['show']);
+    
+    // Admin Reviews Management
+    Route::resource('reviews', AdminReviewController::class)->only(['index', 'show', 'destroy']);
+    Route::post('/reviews/{review}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve');
+    Route::post('/reviews/{review}/reject', [AdminReviewController::class, 'reject'])->name('reviews.reject');
+    Route::get('/reviews/statistics', [AdminReviewController::class, 'statistics'])->name('reviews.statistics');
+
+    // FAQ management
+    Route::resource('faq', AdminFaqController::class)->except(['show']);
 });
 
 // Nạp nhóm route xác thực (register/login/verify...) để có route verification.verify

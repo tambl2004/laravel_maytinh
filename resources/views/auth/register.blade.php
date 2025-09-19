@@ -116,6 +116,16 @@
                                 </button>
                             </form>
 
+                            <!-- Divider -->
+                            <div class="divider-text mb-3">
+                                <span class="text-muted small bg-white px-3">Hoặc đăng ký bằng</span>
+                            </div>
+
+                            <!-- Google Registration Button -->
+                            <a href="{{ route('auth.google') }}" class="btn btn-outline-danger btn-lg w-100 mb-3">
+                                <i class="fab fa-google me-2"></i>Đăng ký với Google
+                            </a>
+
                             <!-- Login Link -->
                             <div class="text-center">
                                 <p class="text-muted mb-0">

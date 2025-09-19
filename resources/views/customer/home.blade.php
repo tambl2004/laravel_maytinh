@@ -2,6 +2,21 @@
 
 @section('title', 'Trang chủ - Laptop Shop')
 
+@section('styles')
+<style>
+    /* Thương hiệu: 1 hàng, kích thước đồng nhất, chạy vô hạn từ phải qua trái */
+    .brand-marquee { background:#f8fafc; padding:20px 0; overflow:hidden; border-top:1px solid #eef2f7; border-bottom:1px solid #eef2f7; }
+    .brand-inner { display:flex; min-width:200%; }
+    .brand-track { display:flex; align-items:center; gap:48px; flex:1 0 50%; animation:brand-scroll 40s linear infinite; will-change:transform; }
+    /* Card logo dạng bo góc như ảnh demo */
+    .brand-logo { display:flex; align-items:center; justify-content:center; width:180px; height:110px; border-radius:18px; background:#ffffff; box-shadow:0 10px 25px rgba(2,6,23,0.06); }
+    .brand-logo img { max-height:46px; width:auto; object-fit:contain; opacity:1; filter:none; }
+    @keyframes brand-scroll { 0%{ transform:translateX(0); } 100%{ transform:translateX(-50%); } }
+    @media (max-width:576px){ .brand-track{ gap:24px; } .brand-logo{ width:140px; height:90px; } .brand-logo img{ max-height:36px; } }
+    /* Không dùng màu tím theo yêu cầu */
+</style>
+@endsection
+
 @section('content')
 <!-- Hero Banner Section với Carousel -->
 <div class="hero-banner">
@@ -86,7 +101,14 @@
             <div class="col-lg-3 col-md-6 mb-4">
                 <div class="modern-product-card">
                     <!-- Hình ảnh sản phẩm -->
-                    <div class="product-image-container">
+                    <div class="product-image-container position-relative">
+                        @php $runningPromo = \Illuminate\Support\Facades\Schema::hasTable('promotions') ? $product->promotions->firstWhere(fn($p) => $p->isRunning()) : null; @endphp
+                        @if($runningPromo)
+                            <div class="promo-badge">{{ $runningPromo->type==='percent' ? (int)$runningPromo->value.'%' : (number_format($runningPromo->value,0,',','.').'₫') }} OFF</div>
+                        @endif
+                        <button class="btn-wishlist wishlist-toggle" data-id="{{ $product->id }}" aria-label="Thêm yêu thích">
+                            <i class="fas fa-heart"></i>
+                        </button>
                         <img src="{{ $product->image }}" class="product-img" alt="{{ $product->name }}">
                         
                         <!-- Badge trạng thái kho -->
@@ -124,13 +146,11 @@
                             @endif
                             <div class="rating">
                                 <div class="stars">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="far fa-star"></i>
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star {{ $i <= round($product->average_rating) ? 'text-warning' : 'text-muted' }}"></i>
+                                    @endfor
                                 </div>
-                                <span class="rating-count">(4.0)</span>
+                                <span class="rating-count">({{ number_format($product->average_rating, 1) }} - {{ $product->review_count }} đánh giá)</span>
                             </div>
                         </div>
                         
@@ -256,6 +276,56 @@
         </a>
     </div>
 </div>
+@endif
+
+<!-- Brand Logos: 1 hàng, chuyển động vô hạn từ phải qua trái -->
+<section class="brand-marquee" aria-label="Thương hiệu đối tác">
+    <div class="container-fluid px-0">
+        <div class="brand-inner">
+            <div class="brand-track">
+                <div class="brand-logo"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYrq2SDHsyK4YVWTX6Lvk4EGjDA55_9qCMBQ&s" alt="Apple" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQh0P_qONWsB8avfMxSeybh3eeyPOia05H5qA&s" alt="ASUS" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://logo.clearbit.com/dell.com" alt="Dell" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://logo.clearbit.com/hp.com" alt="HP" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://cdn-media.sforum.vn/storage/app/media/wp-content/uploads/2020/10/Branding_lenovo-logo_lenovologoposred_low_res.png" alt="Lenovo" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://inkythuatso.com/uploads/images/2021/11/logo-acer-inkythuatso-2-01-27-15-49-45.jpg" alt="Acer" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://inkythuatso.com/uploads/images/2021/11/logo-msi-inkythuatso-4-01-27-14-36-47.jpg" alt="MSI" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_m2muP0ikavqAdSCpoH_D-ltfFQ4uzAKO06DetkyhuLOeuTcun-F-IjTTCnMgDcMkc_U&usqp=CAU" alt="Gigabyte" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrfkucNHvTWnwsFPdg0WIus1eEWP6fAAkEgw&s" alt="Samsung" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTaUmYZtcMHu5uPTy01RNTCx5RmbxAwb6kCw&s" alt="NVIDIA" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlR2P8SEnAGCgNcAAh0bdJJIHL5j_5arZn_w&s" alt="AMD" loading="lazy"></div>
+                <div class="brand-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/7/7d/Intel_logo_%282006-2020%29.svg" alt="Intel" loading="lazy"></div>
+            </div>
+           
+        </div>
+    </div>
+</section>
+
+@if(isset($faqs) && $faqs->count() > 0)
+<section class="py-5" style="background:#f8fafc;">
+    <div class="container">
+        <div class="section-header text-center mb-4">
+            <h2 class="fw-bold mb-2">Câu hỏi thường gặp</h2>
+            <p class="text-muted">Những thắc mắc phổ biến từ khách hàng</p>
+        </div>
+        <div class="accordion" id="faqAccordion">
+            @foreach($faqs as $index => $faq)
+            <div class="accordion-item mb-3 border-0 shadow-sm rounded-3">
+                <h2 class="accordion-header" id="heading{{ $index }}">
+                    <button class="accordion-button {{ $index !== 0 ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $index }}" aria-expanded="{{ $index === 0 ? 'true' : 'false' }}" aria-controls="collapse{{ $index }}">
+                        {{ $faq->question }}
+                    </button>
+                </h2>
+                <div id="collapse{{ $index }}" class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}" aria-labelledby="heading{{ $index }}" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        {!! nl2br(e($faq->answer)) !!}
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
 @endif
 
 <!-- Call to Action Section -->
@@ -411,6 +481,16 @@
                     button.disabled = false;
                 }, 2000);
             });
+        });
+    });
+    // Wishlist toggle
+    document.querySelectorAll('.wishlist-toggle').forEach(btn => {
+        btn.addEventListener('click', function(e){
+            e.preventDefault();
+            const id = this.getAttribute('data-id');
+            fetch(`/wishlist/add/${id}`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } })
+                .then(r => r.json())
+                .then(data => { if (data.success) this.classList.add('active'); });
         });
     });
 </script>
