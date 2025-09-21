@@ -65,6 +65,36 @@ class MoMoPaymentService
             $autoCapture = true;
             $lang = 'vi';
 
+            // Validate amount before sending to MoMo
+            $minAmount = config('services.momo.min_amount', 1);
+            $maxAmount = config('services.momo.max_amount', 50000000);
+            
+            if ($amount < $minAmount) {
+                Log::warning('MoMo Amount Too Low', [
+                    'orderId' => $orderId,
+                    'amount' => $amount,
+                    'minAmount' => $minAmount
+                ]);
+                
+                return [
+                    'success' => false,
+                    'message' => "Số tiền giao dịch nhỏ hơn mức tối thiểu ({$minAmount}₫). Vui lòng chọn phương thức thanh toán khác."
+                ];
+            }
+            
+            if ($amount > $maxAmount) {
+                Log::warning('MoMo Amount Too High', [
+                    'orderId' => $orderId,
+                    'amount' => $amount,
+                    'maxAmount' => $maxAmount
+                ]);
+                
+                return [
+                    'success' => false,
+                    'message' => "Số tiền giao dịch vượt quá mức tối đa ({$maxAmount}₫). Vui lòng chọn phương thức thanh toán khác."
+                ];
+            }
+
             // Create raw signature
             $rawHash = "accessKey=" . $this->accessKey 
                 . "&amount=" . $amount 

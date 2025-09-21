@@ -63,7 +63,8 @@
                                     <div class="card border-2 address-option" data-address-id="{{ $address->id }}">
                                         <div class="card-body p-4">
                                             <div class="form-check">
-                                                <input class="form-check-input address-radio" type="radio" name="address_id" id="address{{ $address->id }}" value="{{ $address->id }}">
+                                                <input class="form-check-input address-radio" type="radio" name="address_id" id="address{{ $address->id }}" value="{{ $address->id }}" 
+                                                       @if($loop->first) data-default="true" @endif>
                                                 <label class="form-check-label w-100 cursor-pointer" for="address{{ $address->id }}">
                                                     <div class="address-details">
                                                         <div class="d-flex align-items-start justify-content-between">
@@ -168,7 +169,7 @@
                                                     </h5>
                                                     <p class="text-muted mb-0 small">Thanh toán nhanh chóng và an toàn qua ví điện tử MoMo</p>
                                                     <p class="text-warning mb-0 small">
-                                                        <i class="fas fa-info-circle me-1"></i>Từ {{ number_format(config('services.momo.min_amount', 10000), 0, ',', '.') }}₫ đến {{ number_format(config('services.momo.max_amount', 50000000), 0, ',', '.') }}₫
+                                                        <i class="fas fa-info-circle me-1"></i>Từ {{ number_format(config('services.momo.min_amount', 1), 0, ',', '.') }}₫ đến {{ number_format(config('services.momo.max_amount', 50000000), 0, ',', '.') }}₫
                                                     </p>
                                                 </div>
                                                 <div class="payment-badge">
@@ -303,6 +304,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const addressCards = document.querySelectorAll('.address-option');
     const addressRadios = document.querySelectorAll('.address-radio');
     
+    // Auto-select default address (first address or marked as default)
+    function selectDefaultAddress() {
+        // Tìm địa chỉ được đánh dấu là mặc định
+        let defaultRadio = document.querySelector('.address-radio[data-default="true"]');
+        
+        // Nếu không có địa chỉ mặc định, chọn địa chỉ đầu tiên
+        if (!defaultRadio && addressRadios.length > 0) {
+            defaultRadio = addressRadios[0];
+        }
+        
+        if (defaultRadio) {
+            const addressId = defaultRadio.value;
+            const card = document.querySelector('[data-address-id="' + addressId + '"]');
+            
+            // Uncheck all radios and remove active class
+            addressRadios.forEach(r => r.checked = false);
+            addressCards.forEach(c => c.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10'));
+            
+            // Check the default radio and add active class
+            defaultRadio.checked = true;
+            if (card) {
+                card.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
+            }
+        }
+    }
+    
+    // Chọn địa chỉ mặc định khi trang load
+    selectDefaultAddress();
+    
     addressCards.forEach(card => {
         card.addEventListener('click', function() {
             const addressId = this.dataset.addressId;
@@ -333,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check MoMo amount requirements
     const totalAmount = {{ $total }};
-    const momoMinAmount = {{ config('services.momo.min_amount', 10000) }};
+    const momoMinAmount = {{ config('services.momo.min_amount', 1) }};
     const momoMaxAmount = {{ config('services.momo.max_amount', 50000000) }};
     const momoRadio = document.getElementById('momo');
     const momoCard = momoRadio.closest('.payment-option');
@@ -432,7 +462,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
                 body: JSON.stringify({
-                    order_id: orderResult.order_id,
                     return_type: 'json'
                 })
             });
@@ -461,60 +490,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Hiển thị trạng thái chờ trên nút
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang chờ bạn thanh toán...';
 
-                // Polling trạng thái đơn hàng mỗi 3s
-                const orderId = orderResult.order_id;
-                let elapsed = 0; // theo dõi thời gian chờ để timeout hợp lý
-                const pollInterval = setInterval(async () => {
-                    try {
-                        const statusResp = await fetch('{{ route("payment.momo.status") }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                            },
-                            body: JSON.stringify({ order_id: orderId })
-                        });
-
-                        if (statusResp.ok) {
-                            const statusJson = await statusResp.json();
-                            const paymentStatus = statusJson?.data?.payment_status;
-                            if (paymentStatus === 'paid') {
-                                clearInterval(pollInterval);
-                                // Đóng tab MoMo nếu còn mở
-                                try { if (paymentWindow && !paymentWindow.closed) paymentWindow.close(); } catch (_) {}
-                                window.location.href = '{{ url('/my-orders') }}' + '/' + statusJson.data.order_id;
-                                return;
-                            }
-                            if (paymentStatus === 'failed' || statusJson?.success === false) {
-                                clearInterval(pollInterval);
-                                alert('Thanh toán không thành công. Vui lòng thử lại hoặc chọn phương thức khác.');
-                                submitBtn.classList.remove('loading');
-                                submitBtn.disabled = false;
-                                submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Hoàn tất đặt hàng';
-                                return;
-                            }
-                        }
-                    } catch (e) {
-                        // Bỏ qua lỗi tạm thời trong quá trình polling
-                        console.warn('Polling error', e);
+                // Simple timeout after 5 minutes
+                setTimeout(() => {
+                    submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Hết thời gian chờ';
+                    if (paymentWindow && !paymentWindow.closed) {
+                        paymentWindow.close();
                     }
-
-                    // Timeout sau 10 phút để tránh treo vô hạn
-                    elapsed += 3000;
-                    if (elapsed >= 10 * 60 * 1000) {
-                        clearInterval(pollInterval);
-                        alert('Chưa nhận được kết quả thanh toán. Bạn có thể kiểm tra lại trong lịch sử đơn hàng.');
-                        submitBtn.classList.remove('loading');
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Hoàn tất đặt hàng';
-                    }
-                }, 3000);
+                }, 300000); // 5 phút timeout
             } else {
                 // Check if it's a minimum amount error
                 if (momoResult.message && momoResult.message.includes('nhỏ hơn mức tối thiểu')) {
                     // Show user-friendly error and suggest COD
-                    alert('Số tiền đơn hàng của bạn không phù hợp để thanh toán qua MoMo (từ {{ number_format(config("services.momo.min_amount", 10000), 0, ",", ".") }}₫ đến {{ number_format(config("services.momo.max_amount", 50000000), 0, ",", ".") }}₫). Vui lòng chọn thanh toán khi nhận hàng (COD).');
+                    alert('Số tiền đơn hàng của bạn không phù hợp để thanh toán qua MoMo (từ {{ number_format(config("services.momo.min_amount", 1), 0, ",", ".") }}₫ đến {{ number_format(config("services.momo.max_amount", 50000000), 0, ",", ".") }}₫). Vui lòng chọn thanh toán khi nhận hàng (COD).');
                     
                     // Auto-select COD payment method
                     const codRadio = document.getElementById('cod');

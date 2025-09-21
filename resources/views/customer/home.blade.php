@@ -106,9 +106,6 @@
                         @if($runningPromo)
                             <div class="promo-badge">{{ $runningPromo->type==='percent' ? (int)$runningPromo->value.'%' : (number_format($runningPromo->value,0,',','.').'₫') }} OFF</div>
                         @endif
-                        <button class="btn-wishlist wishlist-toggle" data-id="{{ $product->id }}" aria-label="Thêm yêu thích">
-                            <i class="fas fa-heart"></i>
-                        </button>
                         <img src="{{ $product->image }}" class="product-img" alt="{{ $product->name }}">
                         
                         <!-- Badge trạng thái kho -->
@@ -129,12 +126,6 @@
                             </div>
                         @endif
                         
-                        <!-- Nút hành động nhanh -->
-                        <div class="quick-actions">
-                            <a href="{{ route('products.show', $product) }}" class="action-btn" title="Xem chi tiết">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                        </div>
                     </div>
                     
                     <!-- Nội dung sản phẩm -->
@@ -328,20 +319,7 @@
 </section>
 @endif
 
-<!-- Call to Action Section -->
-<div class="cta-section py-5">
-    <div class="container">
-        <div class="row justify-content-center text-center">
-            <div class="col-lg-8">
-                <h3 class="display-6 fw-bold mb-4 text-white">Bạn chưa tìm được laptop ưng ý?</h3>
-                <p class="lead mb-4 text-white">Liên hệ với chúng tôi để được tư vấn miễn phí!</p>
-                <a href="{{ route('contact.index') }}" class="btn btn-warning btn-lg px-5 py-3">
-                    <i class="fas fa-phone me-2"></i>Liên hệ ngay
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
+
 @endsection
 
 @section('scripts')
@@ -483,15 +461,6 @@
             });
         });
     });
-    // Wishlist toggle
-    document.querySelectorAll('.wishlist-toggle').forEach(btn => {
-        btn.addEventListener('click', function(e){
-            e.preventDefault();
-            const id = this.getAttribute('data-id');
-            fetch(`/wishlist/add/${id}`, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } })
-                .then(r => r.json())
-                .then(data => { if (data.success) this.classList.add('active'); });
-        });
-    });
+});
 </script>
 @endsection

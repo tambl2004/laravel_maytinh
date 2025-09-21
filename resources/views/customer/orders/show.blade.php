@@ -160,7 +160,7 @@
     <div class="row g-4">
         <!-- Enhanced Order Items Section -->
         <div class="col-lg-8">
-            <div class="order-items-section animate-slide-up">
+            <div class="order-items-section animate-slide-up pb-4">
                 <div class="card border-0 shadow-lg">
                     <div class="card-header bg-gradient-primary text-white border-0">
                         <h5 class="mb-0 fw-bold d-flex align-items-center">
@@ -176,7 +176,8 @@
                             @foreach($order->items as $index => $item)
                             <div class="order-item-card {{ $index < $order->items->count() - 1 ? 'border-bottom' : '' }}">
                                 <div class="row align-items-center p-4">
-                                    <div class="col-lg-3 col-md-4">
+                                    <!-- Hình ảnh sản phẩm -->
+                                    <div class="col-lg-2 col-md-3 col-4">
                                         <div class="item-image-wrapper">
                                             @if($item->product && $item->product->image)
                                                 <img src="{{ $item->product->image }}" alt="{{ $item->product_name }}" class="order-item-image">
@@ -187,17 +188,19 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="col-lg-5 col-md-8 mt-3 mt-md-0">
+                                    
+                                    <!-- Thông tin sản phẩm -->
+                                    <div class="col-lg-4 col-md-4 col-8">
                                         <div class="item-details">
                                             <h6 class="item-name mb-2">{{ $item->product_name }}</h6>
-                                            <div class="item-meta">
+                                            <div class="item-meta mb-2">
                                                 <span class="item-price">{{ number_format($item->price, 0, ',', '.') }}₫</span>
                                                 @if($item->product)
                                                     <span class="item-sku text-muted">• SKU: PRD-{{ $item->product->id }}</span>
                                                 @endif
                                             </div>
                                             @if($item->product)
-                                            <div class="item-actions mt-2">
+                                            <div class="item-actions">
                                                 <a href="{{ route('products.show', $item->product) }}" class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-eye me-1"></i>Xem sản phẩm
                                                 </a>
@@ -205,12 +208,43 @@
                                             @endif
                                         </div>
                                     </div>
-                                    <div class="col-lg-2 col-6 text-center mt-3 mt-lg-0">
+                                    
+                                    <!-- Số lượng -->
+                                    <div class="col-lg-2 col-md-1 col-6 text-center">
                                         <div class="item-quantity">
-                                            <span class="quantity-badge">x{{ $item->quantity }}</span>
+                                            <span class="quantity-badge" style="margin-right: 20px; margin-top: 20px;">x{{ $item->quantity }}</span>
                                         </div>
                                     </div>
-                                    <div class="col-lg-2 col-6 text-end mt-3 mt-lg-0">
+                                    
+                                    <!-- Đánh giá -->
+                                    <div class="col-lg-2 col-md-2 col-6 text-center">
+                                        <div class="review-status">
+                                            @php
+                                                $hasReviewed = \App\Models\Review::where('user_id', auth()->id())
+                                                    ->where('product_id', $item->product_id)
+                                                    ->where('order_id', $order->id)
+                                                    ->exists();
+                                            @endphp
+                                            
+                                            @if($hasReviewed)
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Đã đánh giá
+                                                </span>
+                                            @elseif(in_array($order->status, ['completed', 'processing']))
+                                                <a href="{{ route('products.show', $item->product) }}?review=true" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-star me-1"></i>Đánh giá
+                                                </a>
+                                            @else
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-clock me-1"></i>Chưa thể đánh giá
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tổng tiền -->
+                                    <div class="col-lg-2 col-md-2 col-6 text-end">
                                         <div class="item-total">
                                             <span class="total-price">{{ number_format($item->price * $item->quantity, 0, ',', '.') }}₫</span>
                                         </div>
@@ -225,11 +259,11 @@
                             <div class="row align-items-center">
                                 <div class="col-md-6">
                                     <div class="summary-stats d-flex gap-3">
-                                        <div class="stat-item">
+                                        <div class="stat-item text-black">
                                             <i class="fas fa-box text-primary me-1"></i>
                                             <strong>{{ $order->items->count() }}</strong> sản phẩm
                                         </div>
-                                        <div class="stat-item">
+                                        <div class="stat-item text-black">
                                             <i class="fas fa-weight text-success me-1"></i>
                                             <strong>{{ $order->items->sum('quantity') }}</strong> số lượng
                                         </div>
@@ -243,6 +277,68 @@
                                         </span>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+              <!-- Enhanced Customer Information Card -->
+              <div class="customer-info-card mb-4 animate-slide-up">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header bg-gradient-info text-white border-0">
+                        <h5 class="mb-0 fw-bold d-flex align-items-center">
+                            <i class="fas fa-user-circle me-3"></i>Thông tin khách hàng
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="customer-details">
+                            <div class="detail-item">
+                                <div class="detail-label">
+                                    <i class="fas fa-user text-primary me-2"></i>Họ tên
+                                </div>
+                                <div class="detail-value fw-semibold">{{ $order->customer_name }}</div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <div class="detail-label">
+                                    <i class="fas fa-phone text-success me-2"></i>Số điện thoại
+                                </div>
+                                <div class="detail-value">
+                                    <a href="tel:{{ $order->customer_phone }}" class="text-decoration-none">
+                                        {{ $order->customer_phone }}
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <div class="detail-label">
+                                    <i class="fas fa-envelope text-warning me-2"></i>Email
+                                </div>
+                                <div class="detail-value">
+                                    <a href="mailto:{{ $order->customer_email }}" class="text-decoration-none">
+                                        {{ $order->customer_email }}
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="detail-item">
+                                <div class="detail-label">
+                                    <i class="fas fa-map-marker-alt text-danger me-2"></i>Địa chỉ giao hàng
+                                </div>
+                                <div class="detail-value">{{ $order->customer_address }}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Customer Actions -->
+                        <div class="customer-actions mt-4 pt-3 border-top">
+                            <div class="d-flex gap-2">
+                                <a href="tel:{{ $order->customer_phone }}" class="btn btn-sm btn-outline-success flex-fill">
+                                    <i class="fas fa-phone me-1"></i>Gọi
+                                </a>
+                                <a href="mailto:{{ $order->customer_email }}" class="btn btn-sm btn-outline-primary flex-fill">
+                                    <i class="fas fa-envelope me-1"></i>Email
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -325,68 +421,6 @@
                 </div>
             </div>
 
-            <!-- Enhanced Customer Information Card -->
-            <div class="customer-info-card mb-4 animate-slide-up">
-                <div class="card border-0 shadow-lg">
-                    <div class="card-header bg-gradient-info text-white border-0">
-                        <h5 class="mb-0 fw-bold d-flex align-items-center">
-                            <i class="fas fa-user-circle me-3"></i>Thông tin khách hàng
-                        </h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="customer-details">
-                            <div class="detail-item mb-3">
-                                <div class="detail-label">
-                                    <i class="fas fa-user text-primary me-2"></i>Họ tên
-                                </div>
-                                <div class="detail-value fw-semibold">{{ $order->customer_name }}</div>
-                            </div>
-                            
-                            <div class="detail-item mb-3">
-                                <div class="detail-label">
-                                    <i class="fas fa-phone text-success me-2"></i>Số điện thoại
-                                </div>
-                                <div class="detail-value">
-                                    <a href="tel:{{ $order->customer_phone }}" class="text-decoration-none">
-                                        {{ $order->customer_phone }}
-                                    </a>
-                                </div>
-                            </div>
-                            
-                            <div class="detail-item mb-3">
-                                <div class="detail-label">
-                                    <i class="fas fa-envelope text-warning me-2"></i>Email
-                                </div>
-                                <div class="detail-value">
-                                    <a href="mailto:{{ $order->customer_email }}" class="text-decoration-none">
-                                        {{ $order->customer_email }}
-                                    </a>
-                                </div>
-                            </div>
-                            
-                            <div class="detail-item">
-                                <div class="detail-label">
-                                    <i class="fas fa-map-marker-alt text-danger me-2"></i>Địa chỉ giao hàng
-                                </div>
-                                <div class="detail-value">{{ $order->customer_address }}</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Customer Actions -->
-                        <div class="customer-actions mt-4 pt-3 border-top">
-                            <div class="d-flex gap-2">
-                                <a href="tel:{{ $order->customer_phone }}" class="btn btn-sm btn-outline-success flex-fill">
-                                    <i class="fas fa-phone me-1"></i>Gọi
-                                </a>
-                                <a href="mailto:{{ $order->customer_email }}" class="btn btn-sm btn-outline-primary flex-fill">
-                                    <i class="fas fa-envelope me-1"></i>Email
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Enhanced Order Actions Card -->
             <div class="order-actions-card animate-slide-up">
                 <div class="card border-0 shadow-lg">
@@ -396,7 +430,7 @@
                         </h5>
                     </div>
                     <div class="card-body p-4">
-                        <div class="action-buttons d-grid gap-3">
+                        <div class="action-buttons d-grid">
                             @if($order->status == 'pending')
                                 <button class="btn btn-outline-danger btn-lg cancel-order-btn" data-order-id="{{ $order->id }}">
                                     <i class="fas fa-times-circle me-2"></i>Hủy đơn hàng

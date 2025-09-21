@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product; // Quan trọng: Import Model Product vào
 use App\Models\Category; // Import Category model
+use App\Models\OrderItem;
 
 class ProductController extends Controller
 {
@@ -56,7 +57,7 @@ class ProductController extends Controller
         return view('customer.products.index', compact('products', 'categories'));
     }
      // THÊM PHƯƠNG THỨC MỚI NÀY VÀO
-     public function show(Product $product)
+     public function show(Request $request, Product $product)
      {
          // Lấy 4 sản phẩm liên quan (cùng danh mục, trừ sản phẩm hiện tại)
          $relatedProducts = Product::where('category_id', $product->category_id)
@@ -64,11 +65,26 @@ class ProductController extends Controller
                                    ->limit(4)
                                    ->get();
      
+         // Lấy danh sách wishlist từ session
+         $wishlistIds = collect($request->session()->get('wishlist', []))->unique()->values();
+         
+         // Kiểm tra xem user đã mua sản phẩm này chưa (chỉ khi đã đăng nhập)
+         $hasPurchased = false;
+         if (auth()->check()) {
+             $hasPurchased = OrderItem::whereHas('order', function($query) {
+                 $query->where('user_id', auth()->id())
+                       ->whereIn('status', ['completed', 'processing']);
+             })->where('product_id', $product->id)->exists();
+         }
+     
          return view('customer.products.show', [
              'product' => $product,
              'relatedProducts' => $relatedProducts,
              'reviews' => $product->approvedReviews()->with('user')->latest()->paginate(10),
-             'userReview' => auth()->check() ? $product->reviews()->where('user_id', auth()->id())->first() : null
+             'userReview' => auth()->check() ? $product->reviews()->where('user_id', auth()->id())->first() : null,
+             'wishlistIds' => $wishlistIds,
+             'hasPurchased' => $hasPurchased,
+             'showReviewForm' => $request->has('review') && $hasPurchased
          ]);
      }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Payment;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Services\MoMoPaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,68 +30,55 @@ class MoMoController extends Controller
         try {
             // Enhanced validation
             $validated = $request->validate([
-                'order_id' => 'required|integer|exists:orders,id',
                 'return_type' => 'nullable|string|in:json,redirect'
             ]);
 
-            // Log request for debugging
-            Log::info('MoMo Payment Request', [
-                'order_id' => $validated['order_id'],
-                'user_id' => auth()->id(),
-                'return_type' => $validated['return_type'] ?? 'json'
-            ]);
-
-            $order = Order::with('user')->findOrFail($validated['order_id']);
-
-            // Check if order belongs to authenticated user
-            if ($order->user_id !== auth()->id()) {
-                Log::warning('Unauthorized MoMo payment attempt', [
-                    'order_id' => $order->id,
-                    'order_user_id' => $order->user_id,
-                    'auth_user_id' => auth()->id()
+            // Get pending order data from session
+            $pendingOrder = session()->get('pending_order');
+            
+            if (!$pendingOrder) {
+                Log::warning('No pending order found in session', [
+                    'user_id' => auth()->id()
                 ]);
                 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Bạn không có quyền thanh toán đơn hàng này.'
-                ], 403);
-            }
-
-            // Check if order is already paid
-            if ($order->status === 'completed' || $order->payment_status === 'paid') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Đơn hàng đã được thanh toán.'
+                    'message' => 'Không tìm thấy dữ liệu đơn hàng. Vui lòng thử lại từ đầu.'
                 ], 400);
             }
 
+            // Log request for debugging
+            Log::info('MoMo Payment Request', [
+                'pending_order' => $pendingOrder,
+                'user_id' => auth()->id(),
+                'return_type' => $validated['return_type'] ?? 'json'
+            ]);
+
             // Check minimum and maximum amount for MoMo
-            $minAmount = config('services.momo.min_amount', 10000);
+            $minAmount = config('services.momo.min_amount', 1);
             $maxAmount = config('services.momo.max_amount', 50000000);
             
-            if ($order->total_amount < $minAmount) {
+            if ($pendingOrder['total_amount'] < $minAmount) {
                 Log::warning('MoMo Payment Amount Too Low', [
-                    'order_id' => $order->id,
-                    'amount' => $order->total_amount,
+                    'amount' => $pendingOrder['total_amount'],
                     'min_amount' => $minAmount
                 ]);
                 
                 return response()->json([
                     'success' => false,
-                    'message' => "Số tiền thanh toán ({$order->total_amount}₫) nhỏ hơn mức tối thiểu cho phép ({$minAmount}₫). Vui lòng chọn phương thức thanh toán khác."
+                    'message' => "Số tiền thanh toán ({$pendingOrder['total_amount']}₫) nhỏ hơn mức tối thiểu cho phép ({$minAmount}₫). Vui lòng chọn phương thức thanh toán khác."
                 ], 400);
             }
             
-            if ($order->total_amount > $maxAmount) {
+            if ($pendingOrder['total_amount'] > $maxAmount) {
                 Log::warning('MoMo Payment Amount Too High', [
-                    'order_id' => $order->id,
-                    'amount' => $order->total_amount,
+                    'amount' => $pendingOrder['total_amount'],
                     'max_amount' => $maxAmount
                 ]);
                 
                 return response()->json([
                     'success' => false,
-                    'message' => "Số tiền thanh toán ({$order->total_amount}₫) lớn hơn mức tối đa cho phép ({$maxAmount}₫). Vui lòng chọn phương thức thanh toán khác."
+                    'message' => "Số tiền thanh toán ({$pendingOrder['total_amount']}₫) lớn hơn mức tối đa cho phép ({$maxAmount}₫). Vui lòng chọn phương thức thanh toán khác."
                 ], 400);
             }
 
@@ -98,14 +86,15 @@ class MoMoController extends Controller
             $orderInfo = [
                 'orderId' => $this->momoService->generateOrderId(),
                 'requestId' => $this->momoService->generateRequestId(),
-                'amount' => (int) $order->total_amount,
-                'orderInfo' => "Thanh toán đơn hàng #{$order->id} - " . config('app.name')
+                'amount' => (int) $pendingOrder['total_amount'],
+                'orderInfo' => "Thanh toán đơn hàng - " . config('app.name')
             ];
 
-            // Store MoMo order ID for tracking
-            $order->update([
+            // Store MoMo order ID in session for tracking
+            session()->put('momo_order_info', [
                 'momo_order_id' => $orderInfo['orderId'],
-                'momo_request_id' => $orderInfo['requestId']
+                'momo_request_id' => $orderInfo['requestId'],
+                'pending_order' => $pendingOrder
             ]);
 
             // Create payment request
@@ -148,7 +137,6 @@ class MoMoController extends Controller
         } catch (\Exception $e) {
             Log::error('MoMo Payment Creation Error', [
                 'message' => $e->getMessage(),
-                'order_id' => $request->order_id ?? null,
                 'trace' => $e->getTraceAsString()
             ]);
 
@@ -168,60 +156,134 @@ class MoMoController extends Controller
     public function handleReturn(Request $request)
     {
         try {
+            Log::info('MoMo Return Callback Started', [
+                'request_data' => $request->all(),
+                'session_data' => [
+                    'pending_order' => session()->has('pending_order'),
+                    'momo_order_info' => session()->has('momo_order_info'),
+                    'selected_cart' => session()->has('selected_cart')
+                ]
+            ]);
+
             $result = $this->momoService->processCallback($request->all());
 
+            Log::info('MoMo Service Process Result', ['result' => $result]);
+
             if ($result['success']) {
-                // Find order by MoMo order ID
-                $order = Order::where('momo_order_id', $result['orderId'])->first();
-
-                if ($order) {
-                    DB::transaction(function () use ($order, $result) {
-                        // Update order status
-                        $order->update([
-                            'status' => 'completed',
-                            'payment_method' => 'momo',
-                            'payment_status' => 'paid',
-                            'momo_trans_id' => $result['transId'],
-                            'paid_at' => now()
-                        ]);
-
-                        Log::info('Order Payment Completed via MoMo', [
-                            'order_id' => $order->id,
-                            'momo_trans_id' => $result['transId'],
-                            'amount' => $result['amount']
-                        ]);
-                    });
-
-                    return redirect()->route('orders.show', $order->id)
-                        ->with('success', 'Thanh toán thành công! Đơn hàng của bạn đã được xác nhận.');
-                } else {
-                    Log::warning('MoMo Order Not Found', ['orderId' => $result['orderId']]);
-                    return redirect()->route('home')
-                        ->with('error', 'Không tìm thấy đơn hàng tương ứng.');
-                }
-            } else {
-                // Payment failed
-                $order = Order::where('momo_order_id', $request->orderId)->first();
+                // Get pending order data from session
+                $momoOrderInfo = session()->get('momo_order_info');
                 
-                if ($order) {
-                    $order->update([
-                        'payment_status' => 'failed',
-                        'payment_notes' => $result['message']
+                if (!$momoOrderInfo || $momoOrderInfo['momo_order_id'] !== $result['orderId']) {
+                    Log::warning('MoMo Order Info Not Found in Session', [
+                        'orderId' => $result['orderId'],
+                        'session_data' => $momoOrderInfo
                     ]);
+                    return redirect()->route('home')
+                        ->with('error', 'Không tìm thấy thông tin đơn hàng. Vui lòng thử lại.');
                 }
 
-                return redirect()->route('checkout')
+                $pendingOrder = $momoOrderInfo['pending_order'];
+
+                // Create order in database
+                Log::info('Creating order in database', [
+                    'pending_order' => $pendingOrder,
+                    'momo_result' => $result
+                ]);
+
+                $order = null;
+                DB::transaction(function () use ($pendingOrder, $result, $momoOrderInfo, &$order) {
+                    $order = Order::create([
+                        'user_id' => $pendingOrder['user_id'],
+                        'customer_name' => $pendingOrder['customer_name'],
+                        'customer_email' => $pendingOrder['customer_email'],
+                        'customer_phone' => $pendingOrder['customer_phone'],
+                        'customer_address' => $pendingOrder['customer_address'],
+                        'total_amount' => $pendingOrder['total_amount'],
+                        'payment_method' => 'momo',
+                        'payment_status' => 'paid',
+                        'status' => 'processing', // Đang xử lý khi thanh toán thành công
+                        'momo_order_id' => $result['orderId'],
+                        'momo_request_id' => $momoOrderInfo['momo_request_id'],
+                        'momo_trans_id' => $result['transId'],
+                        'paid_at' => now()
+                    ]);
+
+                    Log::info('Order created successfully', [
+                        'order_id' => $order->id,
+                        'payment_method' => $order->payment_method,
+                        'payment_status' => $order->payment_status
+                    ]);
+
+                    // Create order items
+                    foreach ($pendingOrder['items'] as $id => $details) {
+                        OrderItem::create([
+                            'order_id' => $order->id,
+                            'product_id' => $id,
+                            'product_name' => $details['name'],
+                            'quantity' => $details['quantity'],
+                            'price' => $details['price'],
+                        ]);
+                    }
+
+                    // Remove items from main cart
+                    $mainCart = session()->get('cart', []);
+                    foreach ($pendingOrder['items'] as $id => $details) {
+                        if (isset($mainCart[$id])) {
+                            unset($mainCart[$id]);
+                        }
+                    }
+                    session()->put('cart', $mainCart);
+
+                    Log::info('Order Payment Completed via MoMo', [
+                        'order_id' => $order->id,
+                        'momo_trans_id' => $result['transId'],
+                        'amount' => $result['amount']
+                    ]);
+                });
+
+                // Clear session data
+                session()->forget(['pending_order', 'momo_order_info', 'selected_cart']);
+
+                Log::info('MoMo Payment Success - Redirecting to home', [
+                    'order_id' => $order ? $order->id : 'unknown',
+                    'momo_trans_id' => $result['transId']
+                ]);
+
+                return redirect()->route('home')
+                    ->with('success', 'Thanh toán MoMo thành công! Đơn hàng đã được xác nhận và đang chờ xử lý.');
+            } else {
+                // Payment failed - restore cart
+                $momoOrderInfo = session()->get('momo_order_info');
+                if ($momoOrderInfo) {
+                    $pendingOrder = $momoOrderInfo['pending_order'];
+                    
+                    // Restore items to main cart
+                    $mainCart = session()->get('cart', []);
+                    foreach ($pendingOrder['items'] as $id => $details) {
+                        $mainCart[$id] = $details;
+                    }
+                    session()->put('cart', $mainCart);
+                    
+                    // Restore selected cart
+                    session()->put('selected_cart', $pendingOrder['items']);
+                }
+
+                // Clear session data
+                session()->forget(['pending_order', 'momo_order_info']);
+
+                return redirect()->route('home')
                     ->with('error', 'Thanh toán không thành công: ' . $result['message']);
             }
 
         } catch (\Exception $e) {
             Log::error('MoMo Return Callback Error', [
                 'message' => $e->getMessage(),
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
+                'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->route('checkout')
-                ->with('error', 'Có lỗi xảy ra trong quá trình xử lý thanh toán.');
+            return redirect()->route('home')
+                ->with('error', 'Có lỗi xảy ra trong quá trình xử lý thanh toán: ' . $e->getMessage());
         }
     }
 
@@ -242,9 +304,8 @@ class MoMoController extends Controller
 
                 if ($order && $order->status !== 'completed') {
                     DB::transaction(function () use ($order, $result) {
-                        // Update order status
+                        // Update order status - chỉ cập nhật payment info, không tự động hoàn thành
                         $order->update([
-                            'status' => 'completed',
                             'payment_method' => 'momo',
                             'payment_status' => 'paid',
                             'momo_trans_id' => $result['transId'],

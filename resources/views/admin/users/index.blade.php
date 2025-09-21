@@ -16,60 +16,37 @@
     </a>
 </div>
 
-<!-- Success/Error Messages -->
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle me-2"></i>
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
+{{-- Toast notifications sẽ được hiển thị tự động từ layout --}}
 
-@if (session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-triangle me-2"></i>
-        {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
 <!-- Stats Cards -->
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="stat-card primary">
-            <div class="stat-icon primary">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-value">{{ $users->total() }}</div>
-            <div class="stat-label">Tổng người dùng</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card success">
-            <div class="stat-icon success">
-                <i class="fas fa-user-check"></i>
-            </div>
-            <div class="stat-value">{{ $users->where('email_verified_at', '!=', null)->count() }}</div>
-            <div class="stat-label">Đã xác thực</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card warning">
-            <div class="stat-icon warning">
-                <i class="fas fa-user-clock"></i>
-            </div>
-            <div class="stat-value">{{ $users->where('email_verified_at', null)->count() }}</div>
-            <div class="stat-label">Chờ xác thực</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card danger">
-            <div class="stat-icon danger">
-                <i class="fas fa-crown"></i>
-            </div>
-            <div class="stat-value">{{ $users->where('role', 'admin')->count() }}</div>
-            <div class="stat-label">Administrator</div>
-        </div>
-    </div>
+<div class="stats-grid">
+    @include('components.admin.stat-card', [
+        'type' => 'primary',
+        'value' => $users->total(),
+        'label' => 'Tổng người dùng',
+        'icon' => 'fas fa-users'
+    ])
+    
+    @include('components.admin.stat-card', [
+        'type' => 'success',
+        'value' => $users->where('email_verified_at', '!=', null)->count(),
+        'label' => 'Đã xác thực',
+        'icon' => 'fas fa-user-check'
+    ])
+    
+    @include('components.admin.stat-card', [
+        'type' => 'warning',
+        'value' => $users->where('email_verified_at', null)->count(),
+        'label' => 'Chờ xác thực',
+        'icon' => 'fas fa-user-clock'
+    ])
+    
+    @include('components.admin.stat-card', [
+        'type' => 'danger',
+        'value' => $users->where('role', 'admin')->count(),
+        'label' => 'Administrator',
+        'icon' => 'fas fa-crown'
+    ])
 </div>
 
 <!-- Users Table -->

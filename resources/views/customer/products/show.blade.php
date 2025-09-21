@@ -41,7 +41,7 @@
                             @if($runningPromo)
                                 <div class="promo-badge">{{ $runningPromo->type==='percent' ? (int)$runningPromo->value.'%' : (number_format($runningPromo->value,0,',','.').'₫') }} OFF</div>
                             @endif
-                            <button class="btn-wishlist wishlist-toggle" data-id="{{ $product->id }}" aria-label="Thêm yêu thích">
+                            <button class="btn-wishlist wishlist-toggle {{ $wishlistIds->contains($product->id) ? 'active' : '' }}" data-id="{{ $product->id }}" aria-label="Thêm yêu thích">
                                 <i class="fas fa-heart"></i>
                             </button>
                             <img src="{{ $product->image }}" 
@@ -253,80 +253,106 @@
                     <!-- Review Form -->
                     @auth
                         @if(!$userReview)
-                            <div class="review-form-section mb-4">
-                                <h6 class="mb-3">Đánh giá sản phẩm này</h6>
-                                <form action="{{ route('reviews.store', $product) }}" method="POST" class="review-form">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Đánh giá của bạn <span class="text-danger">*</span></label>
-                                        <div class="rating-input d-flex align-items-center p-2 border rounded" style="background-color: #f8f9fa;">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                <i class="far fa-star rating-star text-muted" data-rating="{{ $i }}" title="{{ $i }} sao"></i>
-                                            @endfor
-                                            <input type="hidden" name="rating" id="rating" required>
-                                            <span class="ms-3 rating-text text-muted small fst-italic">Nhấp vào sao để đánh giá</span>
+                            @if($hasPurchased)
+                                <div class="review-form-section mb-4 p-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; border: 1px solid #dee2e6;">
+                                    <h6 class="mb-3 text-dark fw-bold">
+                                        <i class="fas fa-star text-warning me-2"></i>Đánh giá sản phẩm này
+                                    </h6>
+                                    <form action="{{ route('reviews.store', $product) }}" method="POST" class="review-form">
+                                        @csrf
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold text-dark">Đánh giá của bạn <span class="text-danger">*</span></label>
+                                            <div class="rating-input d-flex align-items-center p-3 border rounded" style="background-color: #ffffff; border-color: #ced4da;">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <i class="far fa-star rating-star" data-rating="{{ $i }}" title="{{ $i }} sao" style="color: #6c757d; font-size: 1.8rem; margin-right: 0.3rem; cursor: pointer; transition: color 0.2s ease;"></i>
+                                                @endfor
+                                                <input type="hidden" name="rating" id="rating" required>
+                                                <span class="ms-3 rating-text text-muted small fst-italic">Nhấp vào sao để đánh giá</span>
+                                            </div>
+                                            @error('rating')
+                                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                            @enderror
                                         </div>
-                                        @error('rating')
-                                            <div class="text-danger small mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="comment" class="form-label">Nhận xét (tùy chọn)</label>
-                                        <textarea name="comment" id="comment" class="form-control" rows="4" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm...">{{ old('comment') }}</textarea>
-                                        @error('comment')
-                                            <div class="text-danger small mt-1">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-paper-plane me-2"></i>Gửi đánh giá
-                                    </button>
-                                </form>
-                            </div>
+                                        <div class="mb-3">
+                                            <label for="comment" class="form-label text-dark fw-semibold">Nhận xét (tùy chọn)</label>
+                                            <textarea name="comment" id="comment" class="form-control" rows="4" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..." style="border-color: #ced4da; border-radius: 8px;">{{ old('comment') }}</textarea>
+                                            @error('comment')
+                                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <button type="submit" class="btn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; color: white; padding: 10px 24px; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;">
+                                            <i class="fas fa-paper-plane me-2"></i>Gửi đánh giá
+                                        </button>
+                                    </form>
+                                </div>
+                            @else
+                                <div class="alert" style="background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%); border: 1px solid #bee5eb; color: #0c5460; border-radius: 12px;">
+                                    <i class="fas fa-info-circle me-2" style="color: #0c5460;"></i>
+                                    <strong>Bạn cần mua sản phẩm này để có thể đánh giá.</strong>
+                                </div>
+                            @endif
                         @else
                             <div class="user-review-section mb-4">
-                                <div class="alert alert-info">
-                                    <h6 class="mb-2">Đánh giá của bạn</h6>
+                                <div class="alert" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border: 1px solid #c3e6cb; color: #155724; border-radius: 12px;">
+                                    <h6 class="mb-2 fw-bold">
+                                        <i class="fas fa-user-check me-2" style="color: #155724;"></i>Đánh giá của bạn
+                                    </h6>
                                     <div class="d-flex align-items-center mb-2">
                                         @for($i = 1; $i <= 5; $i++)
-                                            <i class="fas fa-star {{ $i <= $userReview->rating ? 'text-warning' : 'text-muted' }}"></i>
+                                            <i class="fas fa-star" style="color: {{ $i <= $userReview->rating ? '#ffc107' : '#6c757d' }}; font-size: 1.2rem; margin-right: 0.2rem;"></i>
                                         @endfor
-                                        <span class="ms-2">{{ $userReview->rating }}/5</span>
+                                        <span class="ms-2 fw-semibold" style="color: #155724;">{{ $userReview->rating }}/5</span>
                                     </div>
                                     @if($userReview->comment)
-                                        <p class="mb-2">{{ $userReview->comment }}</p>
+                                        <p class="mb-2" style="color: #155724;">{{ $userReview->comment }}</p>
                                     @endif
                                     <small class="text-muted">Đánh giá vào {{ $userReview->created_at->format('d/m/Y H:i') }}</small>
-                                    <div class="mt-2">
-                                        <button class="btn btn-sm btn-outline-primary edit-review-btn">Chỉnh sửa</button>
+                                    <div class="mt-3">
+                                        <button class="btn btn-sm edit-review-btn" style="background: #007bff; border: none; color: white; padding: 6px 16px; border-radius: 6px; margin-right: 8px;">
+                                            <i class="fas fa-edit me-1"></i>Chỉnh sửa
+                                        </button>
                                         <form action="{{ route('reviews.destroy', $userReview) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa đánh giá này?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                                            <button type="submit" class="btn btn-sm" style="background: #dc3545; border: none; color: white; padding: 6px 16px; border-radius: 6px;">
+                                                <i class="fas fa-trash me-1"></i>Xóa
+                                            </button>
                                         </form>
                                     </div>
                                 </div>
                                 
                                 <!-- Edit Form (hidden by default) -->
                                 <div class="edit-review-form" style="display: none;">
-                                    <form action="{{ route('reviews.update', $userReview) }}" method="POST">
-                                        @csrf
-                                        @method('PUT')
-                                        <div class="mb-3">
-                                            <label class="form-label">Đánh giá của bạn</label>
-                                            <div class="rating-input d-flex align-items-center">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    <i class="far fa-star rating-star-edit {{ $i <= $userReview->rating ? 'fas text-warning' : '' }}" data-rating="{{ $i }}" style="cursor: pointer; font-size: 1.5rem; margin-right: 0.25rem;"></i>
-                                                @endfor
-                                                <input type="hidden" name="rating" id="edit-rating" value="{{ $userReview->rating }}" required>
+                                    <div class="p-4" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 12px; border: 1px solid #ffeaa7;">
+                                        <h6 class="mb-3 fw-bold text-dark">
+                                            <i class="fas fa-edit text-warning me-2"></i>Chỉnh sửa đánh giá
+                                        </h6>
+                                        <form action="{{ route('reviews.update', $userReview) }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold text-dark">Đánh giá của bạn</label>
+                                                <div class="rating-input d-flex align-items-center p-3 border rounded" style="background-color: #ffffff; border-color: #ced4da;">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <i class="far fa-star rating-star-edit {{ $i <= $userReview->rating ? 'fas text-warning' : '' }}" data-rating="{{ $i }}" style="cursor: pointer; font-size: 1.8rem; margin-right: 0.3rem; transition: color 0.2s ease;"></i>
+                                                    @endfor
+                                                    <input type="hidden" name="rating" id="edit-rating" value="{{ $userReview->rating }}" required>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="edit-comment" class="form-label">Nhận xét</label>
-                                            <textarea name="comment" id="edit-comment" class="form-control" rows="4">{{ $userReview->comment }}</textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary me-2">Cập nhật</button>
-                                        <button type="button" class="btn btn-secondary cancel-edit-btn">Hủy</button>
-                                    </form>
+                                            <div class="mb-3">
+                                                <label for="edit-comment" class="form-label text-dark fw-semibold">Nhận xét</label>
+                                                <textarea name="comment" id="edit-comment" class="form-control" rows="4" style="border-color: #ced4da; border-radius: 8px;">{{ $userReview->comment }}</textarea>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button type="submit" class="btn" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; color: white; padding: 8px 20px; border-radius: 8px; font-weight: 600;">
+                                                    <i class="fas fa-save me-2"></i>Cập nhật
+                                                </button>
+                                                <button type="button" class="btn btn-secondary cancel-edit-btn" style="border-radius: 8px;">
+                                                    <i class="fas fa-times me-2"></i>Hủy
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         @endif
@@ -340,40 +366,42 @@
 
                     <!-- Reviews List -->
                     <div class="reviews-list">
-                        <h6 class="mb-3">Đánh giá từ khách hàng</h6>
+                        <h6 class="mb-3 fw-bold text-dark">
+                            <i class="fas fa-users text-primary me-2"></i>Đánh giá từ khách hàng
+                        </h6>
                         @forelse($reviews as $review)
-                            <div class="review-item border-bottom pb-3 mb-3">
+                            <div class="review-item p-3 mb-3" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; border: 1px solid #dee2e6;">
                                 <div class="d-flex align-items-start">
                                     <div class="reviewer-avatar me-3">
-                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <div class="text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);">
                                             {{ strtoupper(substr($review->user->name, 0, 1)) }}
                                         </div>
                                     </div>
                                     <div class="review-content flex-fill">
                                         <div class="d-flex align-items-center justify-content-between mb-1">
-                                            <h6 class="mb-0">{{ $review->user->name }}</h6>
+                                            <h6 class="mb-0 fw-bold text-dark">{{ $review->user->name }}</h6>
                                             <small class="text-muted">{{ $review->created_at->diffForHumans() }}</small>
                                         </div>
                                         <div class="rating mb-2">
                                             @for($i = 1; $i <= 5; $i++)
-                                                <i class="fas fa-star {{ $i <= $review->rating ? 'text-warning' : 'text-muted' }} small"></i>
+                                                <i class="fas fa-star" style="color: {{ $i <= $review->rating ? '#ffc107' : '#6c757d' }}; font-size: 1rem; margin-right: 0.1rem;"></i>
                                             @endfor
-                                            <span class="ms-1 small">{{ $review->rating }}/5</span>
+                                            <span class="ms-2 fw-semibold text-dark">{{ $review->rating }}/5</span>
                                         </div>
                                         @if($review->comment)
-                                            <p class="mb-0">{{ $review->comment }}</p>
+                                            <p class="mb-0 text-dark">{{ $review->comment }}</p>
                                         @endif
                                     </div>
                                 </div>
                             </div>
                         @empty
-                            <div class="text-center py-4">
-                                <i class="fas fa-star-half-alt fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Chưa có đánh giá nào cho sản phẩm này.</p>
+                            <div class="text-center py-5" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; border: 1px solid #dee2e6;">
+                                <i class="fas fa-comments text-muted mb-3" style="font-size: 3rem;"></i>
+                                <p class="text-muted mb-3">Chưa có đánh giá nào cho sản phẩm này.</p>
                                 @auth
                                     @if(!$userReview)
-                                        <button class="btn btn-primary" id="writeFirstReview">
-                                            Viết đánh giá đầu tiên
+                                        <button class="btn" id="writeFirstReview" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); border: none; color: white; padding: 10px 24px; border-radius: 8px; font-weight: 600;">
+                                            <i class="fas fa-star me-2"></i>Viết đánh giá đầu tiên
                                         </button>
                                     @endif
                                 @endauth
@@ -757,3 +785,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<!-- Include wishlist functionality -->
+<script src="{{ asset('js/wishlist.js') }}"></script>

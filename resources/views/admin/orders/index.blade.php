@@ -27,31 +27,34 @@
     </div>
 </div>
 <!-- Stats Cards -->
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="stat-card primary">
-            <div class="stat-value">{{ $orders->total() }}</div>
-            <div class="stat-label">Tổng đơn hàng</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card warning">
-            <div class="stat-value">{{ $orders->where('status', 'pending')->count() }}</div>
-            <div class="stat-label">Chờ xử lý</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card success">
-            <div class="stat-value">{{ $orders->where('status', 'completed')->count() }}</div>
-            <div class="stat-label">Hoàn thành</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card danger">
-            <div class="stat-value">{{ $orders->where('status', 'cancelled')->count() }}</div>
-            <div class="stat-label">Đã hủy</div>
-        </div>
-    </div>
+<div class="stats-grid">
+    @include('components.admin.stat-card', [
+        'type' => 'primary',
+        'value' => $orders->total(),
+        'label' => 'Tổng đơn hàng',
+        'icon' => 'fas fa-shopping-cart'
+    ])
+    
+    @include('components.admin.stat-card', [
+        'type' => 'warning',
+        'value' => $orders->where('status', 'pending')->count(),
+        'label' => 'Chờ xử lý',
+        'icon' => 'fas fa-clock'
+    ])
+    
+    @include('components.admin.stat-card', [
+        'type' => 'success',
+        'value' => $orders->where('status', 'completed')->count(),
+        'label' => 'Hoàn thành',
+        'icon' => 'fas fa-check-circle'
+    ])
+    
+    @include('components.admin.stat-card', [
+        'type' => 'danger',
+        'value' => $orders->where('status', 'cancelled')->count(),
+        'label' => 'Đã hủy',
+        'icon' => 'fas fa-times-circle'
+    ])
 </div>
 <!-- Orders Table -->
 <div class="admin-card">

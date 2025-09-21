@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use App\Models\Product;
+use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -20,6 +22,16 @@ class ReviewController extends Controller
      */
     public function store(Request $request, Product $product)
     {
+        // Kiểm tra xem user đã mua sản phẩm này chưa
+        $hasPurchased = OrderItem::whereHas('order', function($query) {
+            $query->where('user_id', Auth::id())
+                  ->whereIn('status', ['completed', 'processing']);
+        })->where('product_id', $product->id)->exists();
+        
+        if (!$hasPurchased) {
+            return redirect()->back()->with('error', 'Bạn chỉ có thể đánh giá sản phẩm đã mua!');
+        }
+        
         // Kiểm tra xem user đã đánh giá sản phẩm này chưa
         $existingReview = Review::where('user_id', Auth::id())
                                ->where('product_id', $product->id)
@@ -46,10 +58,18 @@ class ReviewController extends Controller
                            ->withInput();
         }
         
+        // Lấy order item để liên kết với đánh giá
+        $orderItem = OrderItem::whereHas('order', function($query) {
+            $query->where('user_id', Auth::id())
+                  ->whereIn('status', ['completed', 'processing']);
+        })->where('product_id', $product->id)->first();
+        
         // Tạo đánh giá mới
         Review::create([
             'user_id' => Auth::id(),
             'product_id' => $product->id,
+            'order_id' => $orderItem->order_id,
+            'order_item_id' => $orderItem->id,
             'rating' => $request->rating,
             'comment' => $request->comment,
             'is_approved' => true // Tự động duyệt (có thể thay đổi)
@@ -103,5 +123,38 @@ class ReviewController extends Controller
         $review->delete();
         
         return redirect()->back()->with('success', 'Đánh giá đã được xóa!');
+    }
+    
+    /**
+     * Kiểm tra trạng thái đánh giá của sản phẩm trong đơn hàng
+     */
+    public function getReviewStatus($orderId, $productId)
+    {
+        $order = Order::where('id', $orderId)
+                     ->where('user_id', Auth::id())
+                     ->first();
+        
+        if (!$order) {
+            return response()->json(['error' => 'Không tìm thấy đơn hàng'], 404);
+        }
+        
+        $orderItem = OrderItem::where('order_id', $orderId)
+                             ->where('product_id', $productId)
+                             ->first();
+        
+        if (!$orderItem) {
+            return response()->json(['error' => 'Không tìm thấy sản phẩm trong đơn hàng'], 404);
+        }
+        
+        $review = Review::where('user_id', Auth::id())
+                        ->where('product_id', $productId)
+                        ->where('order_id', $orderId)
+                        ->first();
+        
+        return response()->json([
+            'has_reviewed' => $review ? true : false,
+            'review' => $review,
+            'can_review' => in_array($order->status, ['completed', 'processing'])
+        ]);
     }
 }

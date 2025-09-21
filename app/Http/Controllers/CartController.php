@@ -101,6 +101,75 @@ class CartController extends Controller
         return redirect()->route('cart.index')->with('error', 'Cập nhật giỏ hàng thất bại!');
     }
 
+    // --- HÀM MỚI: Xóa tất cả sản phẩm ---
+    public function clear(Request $request)
+    {
+        session()->forget('cart');
+        
+        if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Đã xóa tất cả sản phẩm khỏi giỏ hàng!']);
+        }
+        return redirect()->route('cart.index')->with('success', 'Đã xóa tất cả sản phẩm khỏi giỏ hàng!');
+    }
+
+    // --- HÀM MỚI: Lưu sản phẩm được chọn để thanh toán ---
+    public function setSelected(Request $request)
+    {
+        try {
+            $selectedProducts = $request->input('selectedProducts', []);
+            
+            // Debug log
+            \Log::info('setSelected called with:', ['selectedProducts' => $selectedProducts]);
+            
+            if (empty($selectedProducts)) {
+                if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Không có sản phẩm nào được chọn!'], 400);
+                }
+                return redirect()->route('cart.index')->with('error', 'Không có sản phẩm nào được chọn!');
+            }
+            
+            // Validate selected products
+            $cart = session()->get('cart', []);
+            $validatedProducts = [];
+            
+            foreach ($selectedProducts as $product) {
+                $productId = $product['id'];
+                if (isset($cart[$productId])) {
+                    $validatedProducts[$productId] = [
+                        'name' => $cart[$productId]['name'],
+                        'quantity' => min($product['quantity'], $cart[$productId]['quantity']),
+                        'price' => $cart[$productId]['price'],
+                        'image' => $cart[$productId]['image']
+                    ];
+                }
+            }
+            
+            if (empty($validatedProducts)) {
+                if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Không tìm thấy sản phẩm hợp lệ!'], 400);
+                }
+                return redirect()->route('cart.index')->with('error', 'Không tìm thấy sản phẩm hợp lệ!');
+            }
+            
+            session()->put('selected_cart', $validatedProducts);
+            
+            \Log::info('setSelected success:', ['validatedProducts' => $validatedProducts]);
+            
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+                return response()->json(['success' => true, 'message' => 'Đã lưu sản phẩm được chọn!']);
+            }
+            return redirect()->route('checkout.index')->with('success', 'Đã lưu sản phẩm được chọn!');
+            
+        } catch (\Exception $e) {
+            \Log::error('setSelected error:', ['error' => $e->getMessage()]);
+            
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Có lỗi xảy ra: ' . $e->getMessage()], 500);
+            }
+            return redirect()->route('cart.index')->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+        }
+    }
+
     // --- HÀM MỚI: Xóa sản phẩm ---
     public function remove(Request $request, Product $product)
     {

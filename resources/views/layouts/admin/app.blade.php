@@ -32,7 +32,7 @@
     <nav class="navbar navbar-light bg-light border-bottom">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ route('admin.dashboard') }}">
-                <i class="fas fa-toolbox me-2"></i>Admin
+                <i class="fas fa-toolbox me-2"></i>Laptop Shop
             </a>
             <div class="d-flex align-items-center gap-2">
                 <a href="{{ route('products.index') }}" class="btn btn-sm btn-outline-secondary">
@@ -52,7 +52,19 @@
     <div class="container-fluid">
         <div class="row">
             <aside class="col-12 col-md-3 col-lg-2 admin-sidebar py-3">
-                <div class="list-group list-group-flush small">
+                <!-- Sidebar Header -->
+                <div class="admin-sidebar-header">
+                    <a href="{{ route('admin.dashboard') }}" class="admin-sidebar-brand">
+                        <div class="admin-sidebar-brand-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        Admin
+                    </a>
+                </div>
+                
+                <!-- Sidebar Navigation -->
+                <div class="admin-sidebar-nav">
+                    <div class="list-group list-group-flush small">
                     <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                         <i class="fas fa-gauge me-2"></i>Dashboard
                     </a>
@@ -83,6 +95,7 @@
                     <a href="{{ route('admin.faq.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.faq.*') ? 'active' : '' }}">
                         <i class="fas fa-circle-question me-2"></i>FAQ
                     </a>
+                    </div>
                 </div>
             </aside>
             <main class="col-12 col-md-9 col-lg-10 py-3 admin-main">
@@ -110,12 +123,125 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
     <script>
         // Kích hoạt tooltip Bootstrap trên toàn trang (nếu có sử dụng)
         document.addEventListener('DOMContentLoaded', function () {
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.forEach(function (el) { new bootstrap.Tooltip(el); });
+            
+            // Khởi tạo toast system
+            initToastSystem();
         });
+        
+        // Toast Notification System
+        function initToastSystem() {
+            // Tạo container nếu chưa có
+            if (!document.getElementById('toastContainer')) {
+                const container = document.createElement('div');
+                container.className = 'toast-container';
+                container.id = 'toastContainer';
+                document.body.appendChild(container);
+            }
+        }
+        
+        // Hiển thị toast notification
+        function showToast(type, title, message, duration = 5000) {
+            const container = document.getElementById('toastContainer');
+            const toastId = 'toast-' + Date.now();
+            
+            const toastHtml = `
+                <div class="toast-notification toast-${type}" id="${toastId}" data-duration="${duration}">
+                    <div class="toast-icon" style="background: ${getToastConfig(type).bg}">
+                        <i class="${getToastConfig(type).icon}"></i>
+                    </div>
+                    <div class="toast-content">
+                        ${title ? `<div class="toast-title">${title}</div>` : ''}
+                        ${message ? `<div class="toast-message">${message}</div>` : ''}
+                    </div>
+                    <button type="button" class="toast-close" onclick="hideToast('${toastId}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="toast-progress" style="background: ${getToastConfig(type).bg}; animation-duration: ${duration}ms;"></div>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', toastHtml);
+            
+            // Hiển thị toast với animation
+            setTimeout(() => {
+                const toast = document.getElementById(toastId);
+                if (toast) {
+                    toast.style.display = 'flex';
+                    setTimeout(() => toast.classList.add('show'), 10);
+                }
+            }, 10);
+            
+            // Tự động ẩn toast
+            if (duration > 0) {
+                setTimeout(() => hideToast(toastId), duration);
+            }
+        }
+        
+        // Ẩn toast notification
+        function hideToast(toastId) {
+            const toast = document.getElementById(toastId);
+            if (toast) {
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }
+        }
+        
+        // Cấu hình toast
+        function getToastConfig(type) {
+            const configs = {
+                'success': {
+                    bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    icon: 'fas fa-check-circle'
+                },
+                'error': {
+                    bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    icon: 'fas fa-times-circle'
+                },
+                'danger': {
+                    bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    icon: 'fas fa-exclamation-triangle'
+                },
+                'warning': {
+                    bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    icon: 'fas fa-exclamation-triangle'
+                },
+                'info': {
+                    bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    icon: 'fas fa-info-circle'
+                }
+            };
+            return configs[type] || configs['info'];
+        }
+        
+        // Xử lý session messages từ Laravel
+        @if(session('success'))
+            showToast('success', 'Thành công', '{{ session('success') }}');
+        @endif
+        
+        @if(session('error'))
+            showToast('error', 'Lỗi', '{{ session('error') }}');
+        @endif
+        
+        @if(session('warning'))
+            showToast('warning', 'Cảnh báo', '{{ session('warning') }}');
+        @endif
+        
+        @if(session('info'))
+            showToast('info', 'Thông tin', '{{ session('info') }}');
+        @endif
     </script>
     @yield('scripts')
 </body>

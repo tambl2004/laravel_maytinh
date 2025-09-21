@@ -83,7 +83,7 @@
                         </div>
                         
                         <div class="news-content">
-                            {!! nl2br(e($news->content)) !!}
+                            {!! App\Helpers\ContentParser::parseNewsContent($news->content) !!}
                         </div>
                     </div>
                 </div>

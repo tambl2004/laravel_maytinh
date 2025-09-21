@@ -49,8 +49,8 @@ return [
         'return_url' => env('MOMO_RETURN_URL'),
         'notify_url' => env('MOMO_NOTIFY_URL'),
         'ssl_verify' => env('MOMO_SSL_VERIFY', true),
-        'min_amount' => env('MOMO_MIN_AMOUNT', 10000), // Minimum amount in VND (actual MoMo requirement)
-        'max_amount' => env('MOMO_MAX_AMOUNT', 50000000), // Maximum amount in VND
+        'min_amount' => env('MOMO_MIN_AMOUNT', 1), // Minimum amount in VND (1₫ cho test environment)
+        'max_amount' => env('MOMO_MAX_AMOUNT', 50000000), // Maximum amount in VND (50 triệu cho test environment)
     ],
 
 ];

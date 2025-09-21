@@ -37,11 +37,11 @@ class OrderController extends Controller
             ], 403);
         }
 
-        // Chỉ cho phép hủy đơn hàng có trạng thái 'pending'
-        if ($order->status !== 'pending') {
+        // Chỉ cho phép hủy đơn hàng có trạng thái 'pending' hoặc 'processing'
+        if (!in_array($order->status, ['pending', 'processing'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'Chỉ có thể hủy đơn hàng đang chờ xử lý.'
+                'message' => 'Chỉ có thể hủy đơn hàng đang chờ xử lý hoặc đang xử lý.'
             ], 400);
         }
 

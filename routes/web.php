@@ -50,6 +50,7 @@ Route::prefix('wishlist')->name('wishlist.')->group(function () {
     Route::post('/add/{product}', [WishlistController::class, 'add'])->name('add');
     Route::delete('/remove/{product}', [WishlistController::class, 'remove'])->name('remove');
     Route::delete('/clear', [WishlistController::class, 'clear'])->name('clear');
+    Route::get('/count', [WishlistController::class, 'count'])->name('count');
 });
 
 // Dashboard cho người dùng thường
@@ -107,11 +108,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 |
 */
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Cart
+    // Cart - Đặt routes cụ thể trước routes chung để tránh conflict
     Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::patch('/cart/update/{product}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/remove/{product}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+    Route::post('/cart/set-selected', [CartController::class, 'setSelected'])->name('cart.setSelected');
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 
     // Checkout
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
@@ -127,6 +130,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
     Route::put('/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
+    Route::get('/orders/{order}/products/{product}/review-status', [ReviewController::class, 'getReviewStatus'])->name('reviews.status');
     
     // MoMo Payment Routes
     Route::prefix('payment/momo')->name('payment.momo.')->group(function () {

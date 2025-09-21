@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Lấy sản phẩm nổi bật với thông tin đánh giá
         $featuredProducts = Product::withCount(['approvedReviews as review_count'])
@@ -34,6 +34,7 @@ class HomeController extends Controller
                 ->take(8)
                 ->get();
         }
+        
         return view('customer.home', compact('featuredProducts', 'featuredNews', 'faqs'));
     }
 }
